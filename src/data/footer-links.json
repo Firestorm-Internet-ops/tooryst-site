@@ -1,0 +1,56 @@
+{
+  "navigation": [
+    {
+      "label": "About",
+      "href": "/about"
+    },
+    {
+      "label": "Contact",
+      "href": "/contact"
+    },
+    {
+      "label": "Privacy",
+      "href": "/privacy-policy"
+    },
+    {
+      "label": "Terms",
+      "href": "/terms-of-service"
+    },
+    {
+      "label": "Cookies",
+      "href": "/cookie-policy"
+    }
+  ],
+  "social": [
+    {
+      "icon": "Twitter",
+      "url": "https://twitter.com",
+      "label": "Twitter"
+    },
+    {
+      "icon": "Linkedin",
+      "url": "https://linkedin.com",
+      "label": "LinkedIn"
+    },
+    {
+      "icon": "Github",
+      "url": "https://github.com",
+      "label": "GitHub"
+    },
+    {
+      "icon": "Facebook",
+      "url": "https://facebook.com",
+      "label": "Facebook"
+    },
+    {
+      "icon": "Instagram",
+      "url": "https://instagram.com",
+      "label": "Instagram"
+    },
+    {
+      "icon": "Youtube",
+      "url": "https://youtube.com",
+      "label": "YouTube"
+    }
+  ]
+}

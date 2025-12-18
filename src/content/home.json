@@ -1,0 +1,14 @@
+{
+  "hero": {
+    "eyebrow": "Travel Intelligence",
+    "heading": "Discover the Best Time to Travel",
+    "subheading": "Live crowd signals, hyperlocal weather, and visitor sentiment—all in one storyboard. Know exactly when to explore every city, attraction, and story.",
+    "inputPlaceholder": "Search cities, attractions, or stories",
+    "cta": "Explore",
+    "pillars": [
+      "Crowd comfort scores",
+      "Weather & seasonality",
+      "Real traveler insights"
+    ]
+  }
+}
