@@ -1,0 +1,122 @@
+[
+  {
+    "attraction_name": "Keukenhof Castle",
+    "city_name": "Amsterdam",
+    "resolved_name": "Kasteel Keukenhof",
+    "latitude": 52.2677778,
+    "longitude": 4.5402778,
+    "address": "Keukenhof 1, 2161 AN Lisse, Netherlands",
+    "source": "places_findplace",
+    "status": "success"
+  },
+  {
+    "attraction_name": "Keukenhof Gardens",
+    "city_name": "Amsterdam",
+    "resolved_name": "Keukenhof",
+    "latitude": 52.2697087,
+    "longitude": 4.5469336,
+    "address": "Stationsweg 166A, 2161 AM Lisse, Netherlands",
+    "source": "places_findplace",
+    "status": "success"
+  },
+  {
+    "attraction_name": "Acropolis of Athens",
+    "city_name": "Athens",
+    "resolved_name": "Acropolis of Athens",
+    "latitude": 37.9715323,
+    "longitude": 23.7257492,
+    "address": "Athens 105 58, Greece",
+    "source": "places_findplace",
+    "status": "success"
+  },
+  {
+    "attraction_name": "Ancient Agora Athens",
+    "city_name": "Athens",
+    "resolved_name": "Ancient Agora of Athens",
+    "latitude": 37.974897,
+    "longitude": 23.7220933,
+    "address": "Athens 105 55, Greece",
+    "source": "places_findplace",
+    "status": "success"
+  },
+  {
+    "attraction_name": "Ancient Greek Theater",
+    "city_name": "Athens",
+    "resolved_name": "Theatre of Dionysus Eleuthereus",
+    "latitude": 37.9703339,
+    "longitude": 23.7278097,
+    "address": "Mitseon 25, Athina 117 42, Greece",
+    "source": "places_findplace",
+    "status": "success"
+  },
+  {
+    "attraction_name": "Athens Cruises",
+    "city_name": "Athens",
+    "resolved_name": "All Day Cruise",
+    "latitude": 37.9760695,
+    "longitude": 23.7261171,
+    "address": "Pandrossou 66, Athina 105 55, Greece",
+    "source": "places_findplace",
+    "status": "success"
+  },
+  {
+    "attraction_name": "Catamaran Cruise",
+    "city_name": "Athens",
+    "resolved_name": "YachtHop",
+    "latitude": 37.9175954,
+    "longitude": 23.7022869,
+    "address": "Leof. Poseidonos 1, Athina 174 55, Greece",
+    "source": "places_findplace",
+    "status": "success"
+  },
+  {
+    "attraction_name": "Delphi Archaeological Site",
+    "city_name": "Athens",
+    "resolved_name": "Delphi Archaeological Museum",
+    "latitude": 38.4800928,
+    "longitude": 22.4995954,
+    "address": "Delphi 330 54, Greece",
+    "source": "places_findplace",
+    "status": "success"
+  },
+  {
+    "attraction_name": "Meteora Monasteries",
+    "city_name": "Athens",
+    "resolved_name": "Meteora",
+    "latitude": 39.7217044,
+    "longitude": 21.6305896,
+    "address": "Kalabaka 422 00, Greece",
+    "source": "places_findplace",
+    "status": "success"
+  },
+  {
+    "attraction_name": "Snorkeling",
+    "city_name": "Athens",
+    "resolved_name": "Extreme Divers - Athens Snorkeling, Scuba Diving Center. Certified Instructors, Shop, Accessories.",
+    "latitude": 37.9285986,
+    "longitude": 23.7511068,
+    "address": "Leof. Kiprion Iroon 24, Ilioupoli 163 41, Greece",
+    "source": "places_findplace",
+    "status": "success"
+  },
+  {
+    "attraction_name": "Temple of Poseidon",
+    "city_name": "Athens",
+    "resolved_name": "Temple of Poseidon",
+    "latitude": 37.6502055,
+    "longitude": 24.0245867,
+    "address": "Sounion 195 00, Greece",
+    "source": "places_findplace",
+    "status": "success"
+  },
+  {
+    "attraction_name": "Urban Street-Art Tour",
+    "city_name": "Athens",
+    "resolved_name": "Alternative Athens",
+    "latitude": 37.9861019,
+    "longitude": 23.7293823,
+    "address": "Chalkokondili 24, 7th floor, Athina 104 32, Greece",
+    "source": "places_findplace",
+    "status": "success"
+  }
+]

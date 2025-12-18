@@ -1,0 +1,59 @@
+{
+  "hero": {
+    "title": "Contact Us",
+    "subtitle": "Get in touch with our team for support, partnerships, or any questions about Attraction Storyboard",
+    "description": "We're here to help you discover and experience attractions like never before."
+  },
+  "intro": {
+    "title": "Let's Connect",
+    "description": "Attraction Storyboard is built on a passion for transforming how travelers explore the world. Whether you're a curious traveler, a local explorer, a content creator, or part of the tourism industry, we'd love to hear from you and explore how we can work together."
+  },
+  "contactInfo": {
+    "email": {
+      "label": "Email",
+      "value": "hello@attractionstoryboard.com",
+      "note": "For general inquiries, partnerships, and support"
+    },
+    "responseTime": "We typically respond within 24 hours."
+  },
+  "details": [
+    {
+      "title": "Email",
+      "content": "hello@attractionstoryboard.com"
+    },
+    {
+      "title": "Phone",
+      "content": "+1 (555) 123-4567"
+    },
+    {
+      "title": "Address",
+      "content": "Attraction Storyboard HQ, San Francisco, CA 94105, USA"
+    }
+  ],
+  "businessHours": {
+    "title": "Business Hours",
+    "hours": [
+      {
+        "day": "Monday to Friday",
+        "time": "9:00 AM – 6:00 PM PST"
+      },
+      {
+        "day": "Saturday & Sunday",
+        "time": "By appointment"
+      }
+    ]
+  },
+  "cta": {
+    "text": "Ready to explore more?",
+    "buttons": [
+      {
+        "text": "Back to Home",
+        "href": "/"
+      },
+      {
+        "text": "Explore Attractions",
+        "href": "/attractions"
+      }
+    ]
+  }
+}
