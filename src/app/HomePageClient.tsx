@@ -29,6 +29,7 @@ interface HeroContent {
   inputPlaceholder?: string;
   cta?: string;
   pillars?: string[];
+  backgroundImage?: string;
 }
 
 export interface FeaturedCity extends City {
@@ -101,13 +102,13 @@ export function HomePageClient({
     return (
       <div className="flex flex-col gap-12 bg-gradient-to-b from-white via-slate-50 to-white text-gray-900 min-h-screen">
         <HeroSection
-          backgroundImage={undefined}
+          backgroundImage={heroContent.backgroundImage}
           onSearch={handleSearch}
-          eyebrow={config.text.hero.eyebrow}
-          heading={config.text.hero.heading}
-          subheading={config.text.hero.subheading}
-          highlights={config.text.hero.pillars}
-          searchPlaceholder={config.text.hero.searchPlaceholder}
+          eyebrow={heroContent.eyebrow}
+          heading={heroContent.heading}
+          subheading={heroContent.subheading}
+          highlights={heroContent.pillars}
+          searchPlaceholder={heroContent.inputPlaceholder}
         />
         
         <section className="mx-auto w-full max-w-4xl px-4 md:px-6 py-12">
@@ -179,13 +180,13 @@ export function HomePageClient({
   return (
     <div className="flex flex-col gap-12 bg-gradient-to-b from-white via-slate-50 to-white text-gray-900">
       <HeroSection
-        backgroundImage={featuredCities[0]?.heroImage}
+        backgroundImage={heroContent.backgroundImage}
         onSearch={handleSearch}
-        eyebrow={config.text.hero.eyebrow}
-        heading={config.text.hero.heading}
-        subheading={config.text.hero.subheading}
-        highlights={config.text.hero.pillars}
-        searchPlaceholder={config.text.hero.searchPlaceholder}
+        eyebrow={heroContent.eyebrow}
+        heading={heroContent.heading}
+        subheading={heroContent.subheading}
+        highlights={heroContent.pillars}
+        searchPlaceholder={heroContent.inputPlaceholder}
       />
 
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 md:px-6">

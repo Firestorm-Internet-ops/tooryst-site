@@ -2,9 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Menu } from 'lucide-react';
-import config from '@/lib/config';
 
 const links = [
   { label: 'Home', href: '/' },
@@ -29,17 +27,12 @@ export function Header() {
           href="/"
           className="absolute left-4 flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
-          <Image
+          <img
             src="/logo.svg"
-            alt={config.appName}
-            width={40}
-            height={40}
-            className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12"
-            priority
+            alt="Tooryst"
+            className="h-12 md:h-10 lg:h-12 w-auto object-contain"
+            suppressHydrationWarning
           />
-          <span className="hidden sm:inline text-lg md:text-xl font-display font-semibold text-primary-700">
-            {config.appName}
-          </span>
         </Link>
 
         <nav id="main-navigation" className="hidden items-center gap-6 text-base font-medium text-gray-600 md:flex" aria-label="Main navigation">

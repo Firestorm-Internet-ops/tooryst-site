@@ -1,17 +1,13 @@
 'use client';
 
+import { useMemo } from 'react';
+import tzLookup from 'tz-lookup';
 import { AttractionPageResponse } from '@/types/attraction-page';
 import { SectionShell } from './SectionShell';
 import { Mail, Phone, Globe, Clock, Info, Calendar } from 'lucide-react';
 
 interface VisitorInfoSectionProps {
   data: AttractionPageResponse;
-}
-
-// Get today's day name
-function getTodayDayName(): string {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  return days[new Date().getDay()];
 }
 
 export function VisitorInfoSection({ data }: VisitorInfoSectionProps) {
@@ -22,7 +18,29 @@ export function VisitorInfoSection({ data }: VisitorInfoSectionProps) {
   const contactInfo = visitorInfo.contact_info || {};
   const openingHours = visitorInfo.opening_hours || [];
   const bestSeason = visitorInfo.best_season;
-  const todayDayName = getTodayDayName();
+  
+  // Get today's day name in the attraction's timezone
+  const todayDayName = useMemo(() => {
+    let tz = data.timezone;
+    
+    if (!tz && data.cards?.map?.latitude != null && data.cards?.map?.longitude != null) {
+      try {
+        tz = tzLookup(data.cards.map.latitude, data.cards.map.longitude);
+      } catch {
+        // Use default
+      }
+    }
+    
+    if (tz) {
+      try {
+        return new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'long' }).format(new Date());
+      } catch {
+        // Use default
+      }
+    }
+    
+    return new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
+  }, [data.timezone, data.cards?.map?.latitude, data.cards?.map?.longitude]);
 
   return (
     <SectionShell
