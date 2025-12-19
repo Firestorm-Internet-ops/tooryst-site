@@ -75,6 +75,12 @@ class Settings(BaseSettings):
     REFRESH_INTERVAL_VISITOR_INFO: int = int(os.getenv("REFRESH_INTERVAL_VISITOR_INFO", "7"))
     BEST_TIME_REFRESH_THRESHOLD_DAYS: int = int(os.getenv("BEST_TIME_REFRESH_THRESHOLD_DAYS", "2"))
 
+    # ===== Sitemap Settings =====
+    SITE_URL: str = os.getenv("SITE_URL", "https://storyboard.com")
+    API_BASE_URL: str = os.getenv("API_BASE_URL", "http://localhost:8000")
+    SITEMAP_CACHE_TTL: int = int(os.getenv("SITEMAP_CACHE_TTL", "3600"))  # 1 hour
+    SITEMAP_INDEX_CACHE_TTL: int = int(os.getenv("SITEMAP_INDEX_CACHE_TTL", "7200"))  # 2 hours
+
     # ===== Best Time Settings =====
     BEST_TIME_WINDOW_HOURS: int = int(os.getenv("BEST_TIME_WINDOW_HOURS", "2"))
     BEST_TIME_CLOSING_HOUR_DEFAULT: int = int(os.getenv("BEST_TIME_CLOSING_HOUR_DEFAULT", "23"))

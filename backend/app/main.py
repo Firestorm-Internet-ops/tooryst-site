@@ -12,6 +12,8 @@ from app.api.v1.routes.pipeline import router as pipeline_router
 from app.api.v1.routes.frontend import router as frontend_router
 from app.api.v1.routes.health import router as health_router
 from app.api.v1.routes.admin import router as admin_router
+from app.api.v1.routes.sitemap import router as sitemap_router
+from app.api.pipeline_tracking_routes import router as tracking_router
 from app.core.database_init import initialize_database
 
 logger = logging.getLogger(__name__)
@@ -72,6 +74,8 @@ def create_app() -> FastAPI:
     app.include_router(frontend_router, prefix="/api/v1")
     app.include_router(health_router, prefix="/api/v1")
     app.include_router(admin_router, prefix="/api/v1")
+    app.include_router(sitemap_router, prefix="/api/v1")
+    app.include_router(tracking_router)  # No prefix - routes already include /api/pipeline
     return app
 
 

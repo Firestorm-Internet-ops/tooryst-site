@@ -1,194 +1,93 @@
-"""Database initialization module - creates database and tables on startup."""
-import os
+"""Database initialization - runs on backend startup."""
 import logging
 from pathlib import Path
-import pymysql
-from typing import Optional
+from sqlalchemy import text
+from app.infrastructure.persistence.db import SessionLocal
 
 logger = logging.getLogger(__name__)
 
 
-def get_db_config(include_database: bool = True) -> dict:
-    """Get database configuration from environment."""
-    config = {
-        'host': os.getenv('DATABASE_HOST', 'localhost'),
-        'port': int(os.getenv('DATABASE_PORT', 3306)),
-        'user': os.getenv('DATABASE_USER', 'root'),
-        'password': os.getenv('DATABASE_PASSWORD', ''),
-        'charset': 'utf8mb4',
-        'cursorclass': pymysql.cursors.DictCursor
-    }
+def initialize_database():
+    """Initialize database schema on startup.
     
-    if include_database:
-        config['database'] = os.getenv('DATABASE_NAME', 'storyboard')
-    
-    return config
-
-
-def create_database_if_not_exists(db_name: str) -> bool:
-    """Create database if it doesn't exist."""
+    Reads create_schema.sql and executes all migrations.
+    This ensures all required tables exist before the application runs.
+    """
     try:
-        config = get_db_config(include_database=False)
-        connection = pymysql.connect(**config)
+        # Read the schema file
+        schema_file = Path(__file__).parent.parent.parent / "sql" / "create_schema.sql"
         
-        with connection.cursor() as cursor:
-            cursor.execute(
-                f"CREATE DATABASE IF NOT EXISTS {db_name} "
-                f"CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-            )
-            logger.info(f"Database '{db_name}' ready")
+        if not schema_file.exists():
+            logger.error(f"Schema file not found: {schema_file}")
+            return False
         
-        connection.commit()
-        connection.close()
-        return True
-    except Exception as e:
-        logger.error(f"Failed to create database: {e}")
-        return False
-
-
-def execute_schema_file(db_name: str, schema_file_path: Path) -> bool:
-    """Execute SQL schema file to create tables."""
-    if not schema_file_path.exists():
-        logger.error(f"Schema file not found: {schema_file_path}")
-        return False
-    
-    try:
-        # Read schema file
-        with open(schema_file_path, 'r', encoding='utf-8') as f:
+        with open(schema_file, 'r') as f:
             schema_sql = f.read()
         
-        # Remove comments
-        lines = []
-        for line in schema_sql.split('\n'):
-            if '--' in line:
-                line = line[:line.index('--')]
-            line = line.strip()
-            if line:
-                lines.append(line)
+        # Split by semicolon and execute each statement
+        statements = [s.strip() for s in schema_sql.split(';') if s.strip()]
         
-        schema_sql = ' '.join(lines)
-        
-        # Split into statements
-        statements = []
-        current_statement = []
-        in_create_table = False
-        
-        for part in schema_sql.split(';'):
-            part = part.strip()
-            if not part:
-                continue
-            
-            current_statement.append(part)
-            full_statement = ';'.join(current_statement)
-            
-            if 'CREATE TABLE' in full_statement.upper():
-                in_create_table = True
-            
-            if in_create_table:
-                if 'ENGINE=' in full_statement.upper() or full_statement.count('(') == full_statement.count(')'):
-                    statements.append(full_statement)
-                    current_statement = []
-                    in_create_table = False
-            else:
-                statements.append(full_statement)
-                current_statement = []
-        
-        # Execute statements
-        config = get_db_config(include_database=True)
-        connection = pymysql.connect(**config)
-        
-        tables_created = 0
-        with connection.cursor() as cursor:
+        session = SessionLocal()
+        try:
             for statement in statements:
-                statement = statement.strip()
-                if not statement:
+                # Skip comments and empty lines
+                if statement.startswith('--') or not statement:
                     continue
                 
                 try:
-                    if statement.upper().startswith('SET'):
-                        cursor.execute(statement)
-                        continue
-                    
-                    if 'CREATE TABLE' in statement.upper():
-                        cursor.execute(statement)
-                        tables_created += 1
-                        continue
-                    
-                    cursor.execute(statement)
-                    
+                    session.execute(text(statement))
+                    session.commit()
                 except Exception as e:
-                    error_msg = str(e).lower()
-                    if 'already exists' not in error_msg and 'duplicate' not in error_msg:
-                        logger.warning(f"Error executing statement: {e}")
+                    # Some statements might fail if tables already exist
+                    # This is expected and not an error
+                    if "already exists" in str(e) or "Duplicate" in str(e):
+                        logger.debug(f"Table already exists (expected): {str(e)[:100]}")
+                    else:
+                        logger.warning(f"Statement execution warning: {str(e)[:200]}")
+                    session.rollback()
+            
+            logger.info("✅ Database schema initialized successfully")
+            return True
         
-        connection.commit()
-        connection.close()
-        
-        if tables_created > 0:
-            logger.info(f"Created {tables_created} tables")
-        else:
-            logger.info("All tables already exist")
-        
-        return True
-    except Exception as e:
-        logger.error(f"Failed to execute schema: {e}")
-        return False
-
-
-def verify_tables(db_name: str, required_tables: list) -> bool:
-    """Verify that required tables exist."""
-    try:
-        config = get_db_config(include_database=True)
-        connection = pymysql.connect(**config)
-        
-        with connection.cursor() as cursor:
-            cursor.execute("SHOW TABLES")
-            existing_tables = [list(row.values())[0] for row in cursor.fetchall()]
-        
-        connection.close()
-        
-        missing_tables = [t for t in required_tables if t not in existing_tables]
-        
-        if missing_tables:
-            logger.warning(f"Missing tables: {missing_tables}")
+        except Exception as e:
+            logger.error(f"Error initializing database: {e}")
+            session.rollback()
             return False
-        
-        logger.info(f"All {len(required_tables)} required tables exist")
-        return True
+        finally:
+            session.close()
+    
     except Exception as e:
-        logger.error(f"Failed to verify tables: {e}")
+        logger.error(f"Fatal error during database initialization: {e}")
         return False
 
 
-def initialize_database() -> bool:
-    """Initialize database and tables on application startup."""
-    db_name = os.getenv('DATABASE_NAME', 'storyboard')
+def check_database_health():
+    """Check if all required tables exist.
     
-    logger.info("Initializing database...")
-    
-    # Step 1: Create database
-    if not create_database_if_not_exists(db_name):
-        logger.error("Failed to create database")
-        return False
-    
-    # Step 2: Execute schema
-    schema_path = Path(__file__).parent.parent.parent / 'sql' / 'create_schema.sql'
-    if not execute_schema_file(db_name, schema_path):
-        logger.error("Failed to execute schema")
-        return False
-    
-    # Step 3: Verify tables
+    Returns:
+        bool: True if all tables exist, False otherwise
+    """
     required_tables = [
-        'cities', 'attractions', 'hero_images', 'best_time_data',
-        'weather_forecast', 'reviews', 'tips', 'map_snapshot',
-        'nearby_attractions', 'widget_config', 'attraction_metadata',
-        'audience_profiles', 'social_videos', 'system_alerts',
-        'pipeline_runs', 'data_fetch_runs', 'youtube_retry_queue'
+        'pipeline_checkpoints',
+        'attraction_data_tracking',
+        'pipeline_runs',
+        'attractions'
     ]
     
-    if not verify_tables(db_name, required_tables):
-        logger.warning("Some tables are missing")
-        return False
+    session = SessionLocal()
+    try:
+        for table in required_tables:
+            try:
+                session.execute(text(f"SELECT 1 FROM {table} LIMIT 1"))
+            except Exception as e:
+                logger.error(f"Table {table} not found: {e}")
+                return False
+        
+        logger.info("✅ All required tables exist")
+        return True
     
-    logger.info("✓ Database initialization complete")
-    return True
+    except Exception as e:
+        logger.error(f"Error checking database health: {e}")
+        return False
+    finally:
+        session.close()

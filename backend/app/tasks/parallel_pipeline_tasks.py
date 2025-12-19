@@ -11,6 +11,8 @@ from app.celery_app import celery_app
 from app.config import settings
 from app.core.stage_manager import stage_manager
 from app.core.retry_manager import retry_manager
+from app.core.checkpoint_manager import checkpoint_manager
+from app.core.data_tracking_manager import data_tracking_manager
 from app.infrastructure.persistence.db import SessionLocal
 from app.infrastructure.persistence import models
 
@@ -88,6 +90,23 @@ def setup_pipeline_logging(pipeline_run_id: int) -> logging.Logger:
     return logger_inst
 
 
+def should_skip_stage(pipeline_run_id: int, attraction_id: int, stage_name: str, pipe_logger) -> bool:
+    """Check if a stage should be skipped (already completed).
+    
+    Returns:
+        True if stage is already completed, False otherwise
+    """
+    if checkpoint_manager.is_stage_completed(pipeline_run_id, attraction_id, stage_name):
+        pipe_logger.info(f"[{stage_name.upper()}] ⊘ Skipping (already completed)")
+        return True
+    return False
+
+
+def record_stage_completion(pipeline_run_id: int, attraction_id: int, stage_name: str, status: str, metadata: dict = None):
+    """Record that a stage has been completed for an attraction."""
+    checkpoint_manager.create_checkpoint(pipeline_run_id, attraction_id, stage_name, status, metadata)
+
+
 @celery_app.task(name="app.tasks.parallel_pipeline_tasks.process_stage_metadata")
 def process_stage_metadata(pipeline_run_id: int, attraction_id: int):
     """Stage 1: Fetch and store metadata for an attraction.
@@ -100,6 +119,13 @@ def process_stage_metadata(pipeline_run_id: int, attraction_id: int):
     pipe_logger = setup_pipeline_logging(pipeline_run_id)
 
     try:
+        # Check if stage already completed (resume logic)
+        if should_skip_stage(pipeline_run_id, attraction_id, 'metadata', pipe_logger):
+            # Push to next stage
+            stage_manager.push_to_stage('hero_images', attraction_id, pipeline_run_id)
+            process_stage_hero_images.delay(pipeline_run_id, attraction_id)
+            return {'status': 'skipped'}
+
         # Acquire stage slot (max 1 concurrent - sequential pipeline flow)
         timeout_seconds = settings.STAGE_SLOT_TIMEOUT_SECONDS
         if not stage_manager.acquire_stage_slot('metadata', max_concurrent=8, timeout=timeout_seconds):
@@ -160,12 +186,18 @@ def process_stage_metadata(pipeline_run_id: int, attraction_id: int):
         stage_manager.release_stage_slot('metadata')
 
         if status == 'success':
+            # Record checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'metadata', 'completed')
+            
             # Push to Stage 2 (hero images)
             stage_manager.push_to_stage('hero_images', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 1] → Stage 2: {attraction.name}")
 
             # Trigger stage 2 processing
             process_stage_hero_images.delay(pipeline_run_id, attraction_id)
+        elif status == 'error':
+            # Record failed checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'metadata', 'failed')
 
         return {'status': status}
 
@@ -187,6 +219,13 @@ def process_stage_hero_images(pipeline_run_id: int, attraction_id: int):
     pipe_logger = setup_pipeline_logging(pipeline_run_id)
 
     try:
+        # Check if stage already completed (resume logic)
+        if should_skip_stage(pipeline_run_id, attraction_id, 'hero_images', pipe_logger):
+            # Push to next stage
+            stage_manager.push_to_stage('best_time', attraction_id, pipeline_run_id)
+            process_stage_best_time.delay(pipeline_run_id, attraction_id)
+            return {'status': 'skipped'}
+
         # Acquire stage slot (max 1 concurrent - sequential pipeline flow)
         timeout_seconds = settings.STAGE_SLOT_TIMEOUT_SECONDS
         if not stage_manager.acquire_stage_slot('hero_images', max_concurrent=8, timeout=timeout_seconds):
@@ -223,10 +262,15 @@ def process_stage_hero_images(pipeline_run_id: int, attraction_id: int):
 
                 if result and result.get('images'):
                     store_hero_images(attraction.id, result['images'])
-                    pipe_logger.info(f"[Stage 2] ✓ Stored {len(result['images'])} hero images for {attraction.name}")
+                    image_count = len(result['images'])
+                    pipe_logger.info(f"[Stage 2] ✓ Stored {image_count} hero images for {attraction.name}")
+                    # Track data
+                    data_tracking_manager.update_hero_images_count(pipeline_run_id, attraction_id, image_count)
                     status = 'success'
                 else:
                     pipe_logger.warning(f"[Stage 2] ⚠ No hero images found for {attraction.name}")
+                    # Track 0 images
+                    data_tracking_manager.update_hero_images_count(pipeline_run_id, attraction_id, 0)
                     status = 'no_data'
             except Exception as e:
                 pipe_logger.error(f"[Stage 2] ✗ Error fetching hero images: {e}")
@@ -247,6 +291,9 @@ def process_stage_hero_images(pipeline_run_id: int, attraction_id: int):
         stage_manager.release_stage_slot('hero_images')
 
         if status == 'success':
+            # Record checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'hero_images', 'completed')
+            
             # Push to Stage 3 (best time)
             stage_manager.push_to_stage('best_time', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 2] → Stage 3: {attraction.name}")
@@ -254,11 +301,17 @@ def process_stage_hero_images(pipeline_run_id: int, attraction_id: int):
             # Trigger stage 3 processing
             process_stage_best_time.delay(pipeline_run_id, attraction_id)
         elif status == 'no_data':
+            # Record checkpoint for no_data (still mark as completed)
+            record_stage_completion(pipeline_run_id, attraction_id, 'hero_images', 'completed')
+            
             # No images but continue to next stage
             stage_manager.push_to_stage('best_time', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 2] → Stage 3 (no images): {attraction.name}")
             process_stage_best_time.delay(pipeline_run_id, attraction_id)
         else:
+            # Record failed checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'hero_images', 'failed')
+            
             # Error - mark as failed
             session = SessionLocal()
             try:
@@ -292,6 +345,13 @@ def process_stage_best_time(pipeline_run_id: int, attraction_id: int):
     pipe_logger = setup_pipeline_logging(pipeline_run_id)
 
     try:
+        # Check if stage already completed (resume logic)
+        if should_skip_stage(pipeline_run_id, attraction_id, 'best_time', pipe_logger):
+            # Push to next stage
+            stage_manager.push_to_stage('weather', attraction_id, pipeline_run_id)
+            process_stage_weather.delay(pipeline_run_id, attraction_id)
+            return {'status': 'skipped'}
+
         # Acquire stage slot (max 1 concurrent - sequential pipeline flow)
         timeout_seconds = settings.STAGE_SLOT_TIMEOUT_SECONDS
         if not stage_manager.acquire_stage_slot('best_time', max_concurrent=8, timeout=timeout_seconds):
@@ -402,6 +462,9 @@ def process_stage_best_time(pipeline_run_id: int, attraction_id: int):
         stage_manager.release_stage_slot('best_time')
 
         if status == 'success':
+            # Record checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'best_time', 'completed')
+            
             # Push to Stage 4 (weather)
             stage_manager.push_to_stage('weather', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 3] → Stage 4: {attraction.name}")
@@ -409,11 +472,17 @@ def process_stage_best_time(pipeline_run_id: int, attraction_id: int):
             # Trigger stage 4 processing
             process_stage_weather.delay(pipeline_run_id, attraction_id)
         elif status == 'no_data':
+            # Record checkpoint for no_data (still mark as completed)
+            record_stage_completion(pipeline_run_id, attraction_id, 'best_time', 'completed')
+            
             # No data but continue to next stage
             stage_manager.push_to_stage('weather', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 3] → Stage 4 (no data): {attraction.name}")
             process_stage_weather.delay(pipeline_run_id, attraction_id)
         else:
+            # Record failed checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'best_time', 'failed')
+            
             # Error - mark as failed
             session = SessionLocal()
             try:
@@ -447,6 +516,13 @@ def process_stage_weather(pipeline_run_id: int, attraction_id: int):
     pipe_logger = setup_pipeline_logging(pipeline_run_id)
 
     try:
+        # Check if stage already completed (resume logic)
+        if should_skip_stage(pipeline_run_id, attraction_id, 'weather', pipe_logger):
+            # Push to next stage
+            stage_manager.push_to_stage('tips', attraction_id, pipeline_run_id)
+            process_stage_tips.delay(pipeline_run_id, attraction_id)
+            return {'status': 'skipped'}
+
         # Acquire stage slot (max 1 concurrent - sequential pipeline flow)
         timeout_seconds = settings.STAGE_SLOT_TIMEOUT_SECONDS
         if not stage_manager.acquire_stage_slot('weather', max_concurrent=8, timeout=timeout_seconds):
@@ -517,16 +593,25 @@ def process_stage_weather(pipeline_run_id: int, attraction_id: int):
         stage_manager.release_stage_slot('weather')
 
         if status == 'success':
+            # Record checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'weather', 'completed')
+            
             # Push to Stage 5 (tips)
             stage_manager.push_to_stage('tips', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 4] → Stage 5: {attraction.name}")
             process_stage_tips.delay(pipeline_run_id, attraction_id)
         elif status == 'no_data':
+            # Record checkpoint for no_data (still mark as completed)
+            record_stage_completion(pipeline_run_id, attraction_id, 'weather', 'completed')
+            
             # No data but continue to next stage
             stage_manager.push_to_stage('tips', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 4] → Stage 5 (no data): {attraction.name}")
             process_stage_tips.delay(pipeline_run_id, attraction_id)
         else:
+            # Record failed checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'weather', 'failed')
+            
             # Error - mark as failed
             session = SessionLocal()
             try:
@@ -559,6 +644,13 @@ def process_stage_tips(pipeline_run_id: int, attraction_id: int):
     pipe_logger = setup_pipeline_logging(pipeline_run_id)
 
     try:
+        # Check if stage already completed (resume logic)
+        if should_skip_stage(pipeline_run_id, attraction_id, 'tips', pipe_logger):
+            # Push to next stage
+            stage_manager.push_to_stage('map', attraction_id, pipeline_run_id)
+            process_stage_map.delay(pipeline_run_id, attraction_id)
+            return {'status': 'skipped'}
+
         # Acquire stage slot (max 1 concurrent - sequential pipeline flow)
         timeout_seconds = settings.STAGE_SLOT_TIMEOUT_SECONDS
         if not stage_manager.acquire_stage_slot('tips', max_concurrent=8, timeout=timeout_seconds):
@@ -592,10 +684,15 @@ def process_stage_tips(pipeline_run_id: int, attraction_id: int):
 
                 if result and result.get('tips'):
                     store_tips(attraction.id, result['tips'])
-                    pipe_logger.info(f"[Stage 5] ✓ Stored {len(result['tips'])} tips for {attraction.name}")
+                    tips_count = len(result['tips'])
+                    pipe_logger.info(f"[Stage 5] ✓ Stored {tips_count} tips for {attraction.name}")
+                    # Track data
+                    data_tracking_manager.update_tips_count(pipeline_run_id, attraction_id, tips_count)
                     status = 'success'
                 else:
                     pipe_logger.warning(f"[Stage 5] ⚠ No tips found for {attraction.name}")
+                    # Track 0 tips
+                    data_tracking_manager.update_tips_count(pipeline_run_id, attraction_id, 0)
                     status = 'no_data'
             except Exception as e:
                 pipe_logger.error(f"[Stage 5] ✗ Tips error: {e}")
@@ -616,11 +713,17 @@ def process_stage_tips(pipeline_run_id: int, attraction_id: int):
         stage_manager.release_stage_slot('tips')
 
         if status == 'success':
+            # Record checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'tips', 'completed')
+            
             # Push to Stage 6 (map)
             stage_manager.push_to_stage('map', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 5] → Stage 6: {attraction.name}")
             process_stage_map.delay(pipeline_run_id, attraction_id)
         elif status == 'no_data' or status == 'error':
+            # Record checkpoint (mark as completed even if no data or error)
+            record_stage_completion(pipeline_run_id, attraction_id, 'tips', 'completed')
+            
             # No data or error - continue to next stage anyway
             stage_manager.push_to_stage('map', attraction_id, pipeline_run_id)
             if status == 'error':
@@ -648,6 +751,13 @@ def process_stage_map(pipeline_run_id: int, attraction_id: int):
     pipe_logger = setup_pipeline_logging(pipeline_run_id)
 
     try:
+        # Check if stage already completed (resume logic)
+        if should_skip_stage(pipeline_run_id, attraction_id, 'map', pipe_logger):
+            # Push to next stage
+            stage_manager.push_to_stage('reviews', attraction_id, pipeline_run_id)
+            process_stage_reviews.delay(pipeline_run_id, attraction_id)
+            return {'status': 'skipped'}
+
         # Acquire stage slot (max 1 concurrent - sequential pipeline flow)
         timeout_seconds = settings.STAGE_SLOT_TIMEOUT_SECONDS
         if not stage_manager.acquire_stage_slot('map', max_concurrent=8, timeout=timeout_seconds):
@@ -712,10 +822,16 @@ def process_stage_map(pipeline_run_id: int, attraction_id: int):
         stage_manager.release_stage_slot('map')
 
         if status == 'success':
+            # Record checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'map', 'completed')
+            
             stage_manager.push_to_stage('reviews', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 6] → Stage 7: {attraction.name}")
             process_stage_reviews.delay(pipeline_run_id, attraction_id)
         elif status == 'no_data' or status == 'error':
+            # Record checkpoint (mark as completed even if no data or error)
+            record_stage_completion(pipeline_run_id, attraction_id, 'map', 'completed')
+            
             stage_manager.push_to_stage('reviews', attraction_id, pipeline_run_id)
             if status == 'error':
                 pipe_logger.info(f"[Stage 6] → Stage 7 (error, continuing): {attraction.name}")
@@ -742,6 +858,13 @@ def process_stage_reviews(pipeline_run_id: int, attraction_id: int):
     pipe_logger = setup_pipeline_logging(pipeline_run_id)
 
     try:
+        # Check if stage already completed (resume logic)
+        if should_skip_stage(pipeline_run_id, attraction_id, 'reviews', pipe_logger):
+            # Push to next stage
+            stage_manager.push_to_stage('social_videos', attraction_id, pipeline_run_id)
+            process_stage_social_videos.delay(pipeline_run_id, attraction_id)
+            return {'status': 'skipped'}
+
         if not stage_manager.acquire_stage_slot('reviews', max_concurrent=8, timeout=60):
             pipe_logger.error(f"[Stage 7] Timeout acquiring slot for attraction {attraction_id}")
             return {'status': 'timeout'}
@@ -772,10 +895,15 @@ def process_stage_reviews(pipeline_run_id: int, attraction_id: int):
 
                 if result and result.get('reviews'):
                     store_reviews(attraction.id, result.get('card', {}), result['reviews'])
-                    pipe_logger.info(f"[Stage 7] ✓ Stored {len(result['reviews'])} reviews for {attraction.name}")
+                    review_count = len(result['reviews'])
+                    pipe_logger.info(f"[Stage 7] ✓ Stored {review_count} reviews for {attraction.name}")
+                    # Track data
+                    data_tracking_manager.update_reviews_count(pipeline_run_id, attraction_id, review_count)
                     status = 'success'
                 else:
                     pipe_logger.warning(f"[Stage 7] ⚠ No reviews found for {attraction.name}")
+                    # Track 0 reviews
+                    data_tracking_manager.update_reviews_count(pipeline_run_id, attraction_id, 0)
                     status = 'no_data'
             except Exception as e:
                 pipe_logger.error(f"[Stage 7] ✗ Reviews error: {e}")
@@ -794,11 +922,17 @@ def process_stage_reviews(pipeline_run_id: int, attraction_id: int):
         stage_manager.release_stage_slot('reviews')
 
         if status == 'success':
+            # Record checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'reviews', 'completed')
+            
             # Push to Stage 8 (social videos)
             stage_manager.push_to_stage('social_videos', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 7] → Stage 8: {attraction.name}")
             process_stage_social_videos.delay(pipeline_run_id, attraction_id)
         elif status == 'no_data' or status == 'error':
+            # Record checkpoint (mark as completed even if no data or error)
+            record_stage_completion(pipeline_run_id, attraction_id, 'reviews', 'completed')
+            
             # No data or error - continue to next stage anyway
             stage_manager.push_to_stage('social_videos', attraction_id, pipeline_run_id)
             if status == 'error':
@@ -826,6 +960,13 @@ def process_stage_social_videos(pipeline_run_id: int, attraction_id: int):
     pipe_logger = setup_pipeline_logging(pipeline_run_id)
 
     try:
+        # Check if stage already completed (resume logic)
+        if should_skip_stage(pipeline_run_id, attraction_id, 'social_videos', pipe_logger):
+            # Push to next stage
+            stage_manager.push_to_stage('nearby', attraction_id, pipeline_run_id)
+            process_stage_nearby.delay(pipeline_run_id, attraction_id)
+            return {'status': 'skipped'}
+
         if not stage_manager.acquire_stage_slot('social_videos', max_concurrent=8, timeout=60):
             pipe_logger.error(f"[Stage 8] Timeout acquiring slot for attraction {attraction_id}")
             return {'status': 'timeout'}
@@ -872,10 +1013,15 @@ def process_stage_social_videos(pipeline_run_id: int, attraction_id: int):
 
                 if result and result.get('videos'):
                     store_social_videos(attraction.id, result['videos'])
-                    pipe_logger.info(f"[Stage 8] ✓ Stored {len(result['videos'])} social videos for {attraction.name}")
+                    videos_count = len(result['videos'])
+                    pipe_logger.info(f"[Stage 8] ✓ Stored {videos_count} social videos for {attraction.name}")
+                    # Track data
+                    data_tracking_manager.update_social_videos_count(pipeline_run_id, attraction_id, videos_count)
                     status = 'success'
                 else:
                     pipe_logger.warning(f"[Stage 8] ⚠ No social videos found for {attraction.name}")
+                    # Track 0 videos
+                    data_tracking_manager.update_social_videos_count(pipeline_run_id, attraction_id, 0)
                     status = 'no_data'
             except Exception as e:
                 pipe_logger.error(f"[Stage 8] ✗ Social videos error: {e}")
@@ -909,10 +1055,16 @@ def process_stage_social_videos(pipeline_run_id: int, attraction_id: int):
 
         # Push to Stage 9 (nearby attractions)
         if status == 'success':
+            # Record checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'social_videos', 'completed')
+            
             stage_manager.push_to_stage('nearby', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 8] → Stage 9: {attraction.name}")
             process_stage_nearby.delay(pipeline_run_id, attraction_id)
         elif status == 'no_data':
+            # Record checkpoint (mark as completed even if no data)
+            record_stage_completion(pipeline_run_id, attraction_id, 'social_videos', 'completed')
+            
             # No data but continue to next stage
             stage_manager.push_to_stage('nearby', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 8] → Stage 9 (no data): {attraction.name}")
@@ -950,6 +1102,13 @@ def process_stage_nearby(pipeline_run_id: int, attraction_id: int):
     pipe_logger = setup_pipeline_logging(pipeline_run_id)
 
     try:
+        # Check if stage already completed (resume logic)
+        if should_skip_stage(pipeline_run_id, attraction_id, 'nearby', pipe_logger):
+            # Push to next stage
+            stage_manager.push_to_stage('audiences', attraction_id, pipeline_run_id)
+            process_stage_audiences.delay(pipeline_run_id, attraction_id)
+            return {'status': 'skipped'}
+
         if not stage_manager.acquire_stage_slot('nearby', max_concurrent=8, timeout=60):
             pipe_logger.error(f"[Stage 9] Timeout acquiring slot for attraction {attraction_id}")
             return {'status': 'timeout'}
@@ -993,10 +1152,15 @@ def process_stage_nearby(pipeline_run_id: int, attraction_id: int):
 
                 if result and result.get('nearby'):
                     store_nearby_attractions(attraction.id, result['nearby'])
-                    pipe_logger.info(f"[Stage 9] ✓ Stored {len(result['nearby'])} nearby attractions for {attraction.name}")
+                    nearby_count = len(result['nearby'])
+                    pipe_logger.info(f"[Stage 9] ✓ Stored {nearby_count} nearby attractions for {attraction.name}")
+                    # Track data
+                    data_tracking_manager.update_nearby_attractions_count(pipeline_run_id, attraction_id, nearby_count)
                     status = 'success'
                 else:
                     pipe_logger.warning(f"[Stage 9] ⚠ No nearby attractions found for {attraction.name}")
+                    # Track 0 nearby attractions
+                    data_tracking_manager.update_nearby_attractions_count(pipeline_run_id, attraction_id, 0)
                     status = 'no_data'
             except Exception as e:
                 pipe_logger.error(f"[Stage 9] ✗ Nearby attractions error: {e}")
@@ -1015,14 +1179,23 @@ def process_stage_nearby(pipeline_run_id: int, attraction_id: int):
         stage_manager.release_stage_slot('nearby')
 
         if status == 'success':
+            # Record checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'nearby', 'completed')
+            
             stage_manager.push_to_stage('audiences', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 9] → Stage 10: {attraction.name}")
             process_stage_audiences.delay(pipeline_run_id, attraction_id)
         elif status == 'no_data':
+            # Record checkpoint (mark as completed even if no data)
+            record_stage_completion(pipeline_run_id, attraction_id, 'nearby', 'completed')
+            
             stage_manager.push_to_stage('audiences', attraction_id, pipeline_run_id)
             pipe_logger.info(f"[Stage 9] → Stage 10 (no data): {attraction.name}")
             process_stage_audiences.delay(pipeline_run_id, attraction_id)
         else:
+            # Record failed checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'nearby', 'failed')
+            
             session = SessionLocal()
             try:
                 session.execute(text("""
@@ -1054,6 +1227,12 @@ def process_stage_audiences(pipeline_run_id: int, attraction_id: int):
     pipe_logger = setup_pipeline_logging(pipeline_run_id)
 
     try:
+        # Check if stage already completed (resume logic)
+        if should_skip_stage(pipeline_run_id, attraction_id, 'audiences', pipe_logger):
+            # This is the final stage - mark pipeline run as complete
+            pipe_logger.info(f"[Stage 10] ✓ Attraction {attraction_id} fully processed (all stages complete)")
+            return {'status': 'skipped'}
+
         if not stage_manager.acquire_stage_slot('audiences', max_concurrent=8, timeout=60):
             pipe_logger.error(f"[Stage 10] Timeout acquiring slot for attraction {attraction_id}")
             return {'status': 'timeout'}
@@ -1087,10 +1266,15 @@ def process_stage_audiences(pipeline_run_id: int, attraction_id: int):
 
                 if result and result.get('profiles'):
                     store_audience_profiles(attraction.id, result['profiles'])
-                    pipe_logger.info(f"[Stage 10] ✓ Stored {len(result['profiles'])} audience profiles for {attraction.name}")
+                    profiles_count = len(result['profiles'])
+                    pipe_logger.info(f"[Stage 10] ✓ Stored {profiles_count} audience profiles for {attraction.name}")
+                    # Track data
+                    data_tracking_manager.update_audience_profiles_count(pipeline_run_id, attraction_id, profiles_count)
                     status = 'success'
                 else:
                     pipe_logger.warning(f"[Stage 10] ⚠ No audience profiles found for {attraction.name}")
+                    # Track 0 profiles
+                    data_tracking_manager.update_audience_profiles_count(pipeline_run_id, attraction_id, 0)
                     status = 'no_data'
             except Exception as e:
                 pipe_logger.error(f"[Stage 10] ✗ Audience profiles error: {e}")
@@ -1110,6 +1294,9 @@ def process_stage_audiences(pipeline_run_id: int, attraction_id: int):
 
         # FINAL STAGE - mark pipeline as complete
         if status == 'success' or status == 'no_data':
+            # Record checkpoint for final stage
+            record_stage_completion(pipeline_run_id, attraction_id, 'audiences', 'completed')
+            
             session = SessionLocal()
             try:
                 session.execute(text("""
@@ -1123,6 +1310,9 @@ def process_stage_audiences(pipeline_run_id: int, attraction_id: int):
             finally:
                 session.close()
         else:
+            # Record failed checkpoint
+            record_stage_completion(pipeline_run_id, attraction_id, 'audiences', 'failed')
+            
             session = SessionLocal()
             try:
                 session.execute(text("""
@@ -1134,6 +1324,10 @@ def process_stage_audiences(pipeline_run_id: int, attraction_id: int):
                 session.commit()
             finally:
                 session.close()
+
+        # Check if pipeline is complete and cleanup if needed
+        from app.tasks.pipeline_cleanup import check_and_cleanup_pipeline
+        check_and_cleanup_pipeline.delay(pipeline_run_id)
 
         return {'status': status}
 
@@ -1190,6 +1384,9 @@ def orchestrate_pipeline(attraction_slugs: List[str]):
 
         # Seed Stage 1 queue and kick off processing
         for attraction in attractions:
+            # Create tracking record for this attraction
+            data_tracking_manager.create_tracking_record(pipeline_run_id, attraction.id)
+            
             stage_manager.push_to_stage('metadata', attraction.id, pipeline_run_id)
             pipe_logger.info(f"Queued for Stage 1: {attraction.name}")
 
