@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Search, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useSearch } from '@/hooks/useSearch';
 import { config } from '@/lib/config';
@@ -22,6 +23,7 @@ export function SearchInput({
   onDebouncedChange,
   showSuggestions = true,
 }: SearchInputProps) {
+  const router = useRouter();
   const [query, setQuery] = React.useState('');
   const [showDropdown, setShowDropdown] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -56,10 +58,15 @@ export function SearchInput({
     onSearch(query.trim());
   };
 
-  const handleSuggestionClick = (value: string) => {
-    setQuery(value);
+  const handleSuggestionClick = (suggestion: { type: 'city' | 'attraction'; name: string; slug: string }) => {
     setShowDropdown(false);
-    onSearch(value);
+    
+    // Navigate directly to the specific page based on type
+    if (suggestion.type === 'city') {
+      router.push(`/cities/${suggestion.slug}`);
+    } else {
+      router.push(`/attractions/${suggestion.slug}`);
+    }
   };
 
   const handleClear = () => {
@@ -151,7 +158,7 @@ export function SearchInput({
                   <button
                     type="button"
                     className="w-full px-5 py-3 text-left text-sm sm:text-base text-gray-700 hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                    onClick={() => handleSuggestionClick(suggestion.name)}
+                    onClick={() => handleSuggestionClick(suggestion)}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-medium text-gray-400 uppercase min-w-[60px]">
