@@ -1,4 +1,5 @@
 """Frontend API routes for homepage, cities, and attractions."""
+import logging
 from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Query
@@ -8,6 +9,8 @@ from sqlalchemy import func, desc, or_
 from app.config import settings
 from app.infrastructure.persistence.db import SessionLocal
 from app.infrastructure.persistence import models
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["frontend"])
 
@@ -487,6 +490,29 @@ async def get_attraction(slug: str):
             models.Attraction,
             models.NearbyAttraction.nearby_attraction_id == models.Attraction.id
         ).all()
+        
+        # Build nearby attractions list (enrichment happens asynchronously in background)
+        enriched_nearby = []
+        for n, attr_rating, attr_review_count in nearby:
+            nearby_item = {
+                'nearby_attraction': n,
+                'rating': float(n.rating) if n.rating else (float(attr_rating) if attr_rating else None),
+                'review_count': n.review_count if n.review_count else (attr_review_count if attr_review_count else 0),
+                'image_url': n.image_url
+            }
+            
+            # If nearby attraction is from Google Places (nearby_attraction_id is NULL) and missing data,
+            # queue enrichment task to fetch from Google Places API
+            if n.nearby_attraction_id is None and n.place_id and (not n.rating or not n.review_count or not n.image_url):
+                try:
+                    from app.tasks.nearby_attractions_tasks import enrich_nearby_attraction_from_google
+                    enrich_nearby_attraction_from_google.delay(n.id)
+                    logger.debug(f"Queued enrichment task for nearby attraction {n.name}")
+                except Exception as e:
+                    logger.warning(f"Failed to queue enrichment for {n.name}: {e}")
+            
+            enriched_nearby.append(nearby_item)
+        
         widgets = session.query(models.WidgetConfig).filter_by(attraction_id=attr.id).first()
         
         # Build response
@@ -643,19 +669,18 @@ async def get_attraction(slug: str):
             
             "nearby_attractions": [
                 {
-                    "name": n.name,
-                    "slug": n.slug,
-                    "link": n.link,
-                    "distance_km": float(n.distance_km) if n.distance_km else None,
-                    "distance_text": n.distance_text,
-                    "walking_time_minutes": n.walking_time_minutes,
-                    "image_url": n.image_url,
-                    # Use rating from nearby_attractions table, fallback to attractions table
-                    "rating": float(n.rating) if n.rating else (float(attr_rating) if attr_rating else None),
-                    "review_count": attr_review_count if attr_review_count else 0,
-                    "vicinity": n.vicinity
+                    "name": item['nearby_attraction'].name,
+                    "slug": item['nearby_attraction'].slug,
+                    "link": item['nearby_attraction'].link,
+                    "distance_km": float(item['nearby_attraction'].distance_km) if item['nearby_attraction'].distance_km else None,
+                    "distance_text": item['nearby_attraction'].distance_text,
+                    "walking_time_minutes": item['nearby_attraction'].walking_time_minutes,
+                    "image_url": item['image_url'],
+                    "rating": item['rating'],
+                    "review_count": item['review_count'],
+                    "vicinity": item['nearby_attraction'].vicinity
                 }
-                for n, attr_rating, attr_review_count in nearby
+                for item in enriched_nearby
             ],
             
             "widgets": {

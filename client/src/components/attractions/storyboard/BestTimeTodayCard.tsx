@@ -201,22 +201,26 @@ export function BestTimeTodayCard({ bestTime, name, timezone, latitude, longitud
   }, [visitorInfo, dayName]);
 
   // Calculate if open now - prefer visitor info, fallback to bestTime data
-  let isOpenNow = false;
-  let isOpenText = 'Closed now';
-  
-  if (todayOpeningHours) {
-    if (todayOpeningHours.is_closed) {
-      isOpenNow = false;
-      isOpenText = 'Closed';
+  const { isOpenNow, isOpenText } = useMemo(() => {
+    let open = false;
+    let text = 'Closed now';
+    
+    if (todayOpeningHours) {
+      if (todayOpeningHours.is_closed) {
+        open = false;
+        text = 'Closed';
+      } else {
+        open = calculateIsOpenNow(timezone, todayOpeningHours.open_time, todayOpeningHours.close_time);
+        text = open ? 'Open now' : 'Closed now';
+      }
     } else {
-      isOpenNow = calculateIsOpenNow(timezone, todayOpeningHours.open_time, todayOpeningHours.close_time);
-      isOpenText = isOpenNow ? 'Open now' : 'Closed now';
+      // Fallback to bestTime data if visitor info not available
+      open = calculateIsOpenNow(timezone, bestTime.today_opening_time, bestTime.today_closing_time);
+      text = open ? 'Open now' : 'Closed now';
     }
-  } else {
-    // Fallback to bestTime data if visitor info not available
-    isOpenNow = calculateIsOpenNow(timezone, bestTime.today_opening_time, bestTime.today_closing_time);
-    isOpenText = isOpenNow ? 'Open now' : 'Closed now';
-  }
+    
+    return { isOpenNow: open, isOpenText: text };
+  }, [todayOpeningHours, timezone, bestTime.today_opening_time, bestTime.today_closing_time]);
 
   // Format best time window: if it's "x-x", show just "x"
   const bestWindow = bestTime.best_time_text

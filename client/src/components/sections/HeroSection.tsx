@@ -17,10 +17,10 @@ interface HeroSectionProps {
 }
 
 const DEFAULT_CONTENT = {
-  eyebrow: 'Discover the best time to travel',
-  heading: 'Explore the world with real-time destination intelligence',
-  subheading: 'Crowd, weather, and visitor insights—curated for every city and attraction.',
-  searchPlaceholder: 'Search destinations, cities, or attractions',
+  eyebrow: 'Travel Intelligence',
+  heading: 'Skip lines. Save time. See more.',
+  subheading: 'Discover the best time to visit any attraction—plus crowd levels, reviews, weather, tips, and nearby must-sees.',
+  searchPlaceholder: 'Search cities, attractions, or stories',
 };
 
 export function HeroSection({

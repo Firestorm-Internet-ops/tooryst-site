@@ -23,9 +23,6 @@ export function SocialCardPlaceholder() {
         <p className="text-sm text-gray-700 mb-4">
           YouTube videos and social content for this attraction will be available soon
         </p>
-        <div className="inline-block px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-full hover:bg-red-700 transition-colors">
-          Check back later
-        </div>
       </div>
     </article>
   );

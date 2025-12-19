@@ -318,6 +318,112 @@ def refresh_all_nearby_attractions() -> Dict[str, Any]:
         return {"status": "error", "error": str(e)}
 
 
+@celery_app.task(name="app.tasks.nearby_attractions_tasks.enrich_nearby_attraction_from_google")
+def enrich_nearby_attraction_from_google(nearby_attraction_id: int) -> Dict[str, Any]:
+    """Enrich a nearby attraction with data from Google Places API.
+    
+    This task fetches rating, review count, and image URL from Google Places
+    for nearby attractions that are not in our database (nearby_attraction_id is NULL).
+    
+    Args:
+        nearby_attraction_id: ID of the nearby attraction record to enrich
+    
+    Returns:
+        Dictionary with status and enrichment details
+    """
+    logger.info(f"Starting enrichment for nearby attraction {nearby_attraction_id}")
+    
+    session = SessionLocal()
+    try:
+        # Get the nearby attraction record
+        nearby = session.query(models.NearbyAttraction).filter_by(id=nearby_attraction_id).first()
+        
+        if not nearby:
+            logger.error(f"Nearby attraction {nearby_attraction_id} not found")
+            return {"status": "error", "error": "Nearby attraction not found"}
+        
+        # Only enrich if it's from Google Places (nearby_attraction_id is NULL) and has place_id
+        if nearby.nearby_attraction_id is not None or not nearby.place_id:
+            logger.info(f"Skipping enrichment for {nearby.name} (already in DB or no place_id)")
+            return {"status": "skipped", "reason": "Not a Google Places attraction"}
+        
+        # Skip if already has all data
+        if nearby.rating and nearby.review_count and nearby.image_url:
+            logger.info(f"Skipping enrichment for {nearby.name} (already has all data)")
+            return {"status": "skipped", "reason": "Already has all data"}
+        
+        logger.info(f"Enriching {nearby.name} from Google Places (place_id: {nearby.place_id})")
+        
+        try:
+            from app.infrastructure.external_apis.google_places_client import GooglePlacesClient
+            
+            places_client = GooglePlacesClient()
+            
+            # Fetch fresh place details from Google
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            try:
+                place_details = loop.run_until_complete(
+                    places_client.get_place_details(nearby.place_id)
+                )
+            finally:
+                loop.close()
+            
+            if not place_details:
+                logger.warning(f"Failed to fetch place details for {nearby.name}")
+                return {"status": "error", "error": "Failed to fetch place details"}
+            
+            # Track what was updated
+            updates = {}
+            
+            # Update rating if missing
+            if not nearby.rating and place_details.get('rating'):
+                nearby.rating = float(place_details.get('rating'))
+                updates['rating'] = nearby.rating
+                logger.info(f"  ✓ Set rating: {nearby.rating}")
+            
+            # Update review count if missing
+            if not nearby.review_count and place_details.get('userRatingCount'):
+                nearby.review_count = place_details.get('userRatingCount')
+                updates['review_count'] = nearby.review_count
+                logger.info(f"  ✓ Set review_count: {nearby.review_count}")
+            
+            # Get first photo if missing
+            if not nearby.image_url and place_details.get('photos'):
+                photos = place_details.get('photos', [])
+                if photos:
+                    # For Places API v1, photos have a 'name' field
+                    photo_name = photos[0].get('name')
+                    if photo_name:
+                        # Construct the photo URL using the photo name
+                        image_url = f"https://places.googleapis.com/v1/{photo_name}/media?maxWidthPx=400&key={places_client.api_key}"
+                        nearby.image_url = image_url
+                        updates['image_url'] = image_url
+                        logger.info(f"  ✓ Set image_url")
+            
+            # Update the database
+            session.commit()
+            
+            logger.info(f"✓ Enriched {nearby.name} with {len(updates)} fields")
+            return {
+                "status": "success",
+                "nearby_attraction_id": nearby_attraction_id,
+                "name": nearby.name,
+                "updates": updates
+            }
+            
+        except Exception as e:
+            logger.error(f"Error enriching {nearby.name}: {e}", exc_info=True)
+            return {"status": "error", "error": str(e)}
+            
+    except Exception as e:
+        logger.error(f"Error in enrichment task: {e}", exc_info=True)
+        return {"status": "error", "error": str(e)}
+    finally:
+        session.close()
+
+
 @celery_app.task(name="app.tasks.nearby_attractions_tasks.backfill_nearby_attractions")
 def backfill_nearby_attractions(batch_size: int = 10) -> Dict[str, Any]:
     """Backfill nearby attractions for all attractions that don't have them.

@@ -24,11 +24,10 @@ function formatHour(hour: string): string {
   const parts = hour.split(':');
   const hourNum = parseInt(parts[0], 10);
   if (isNaN(hourNum)) return hour;
-  
-  // Format as 12-hour time
-  const period = hourNum >= 12 ? 'PM' : 'AM';
-  const displayHour = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
-  return `${displayHour}${parts[1] ? ':' + parts[1] : ''} ${period}`;
+
+  // Format as 24-hour time
+  const paddedHour = hourNum.toString().padStart(2, '0');
+  return `${paddedHour}${parts[1] ? ':' + parts[1] : ':00'}`;
 }
 
 function getCurrentHour(): number {
@@ -38,7 +37,8 @@ function getCurrentHour(): number {
 
 export function BestTimesSection({ data }: BestTimesSectionProps) {
   const bestTimeDays = data.best_time || [];
-  const [currentHour, setCurrentHour] = useState<number | null>(null);
+  const [currentHour, setCurrentHour] = useState<number | null>(() => getCurrentHour());
+  const [isMounted, setIsMounted] = useState(false);
 
   if (bestTimeDays.length === 0) return null;
 
@@ -71,6 +71,7 @@ export function BestTimesSection({ data }: BestTimesSectionProps) {
 
   // Get current hour in the venue's timezone
   useEffect(() => {
+    setIsMounted(true);
     if (displayTimezone) {
       try {
         const now = new Date();
@@ -149,30 +150,6 @@ export function BestTimesSection({ data }: BestTimesSectionProps) {
                 </div>
               )}
             </div>
-            
-            {/* Open/Closed Status */}
-            {todayOpeningHours && (
-              <div className="flex-shrink-0">
-                {todayOpeningHours.is_closed ? (
-                  <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-100 border border-red-300">
-                    <div className="w-2 h-2 rounded-full bg-red-600"></div>
-                    <span className="text-sm font-semibold text-red-700">Closed</span>
-                  </div>
-                ) : currentHour !== null && closingHour !== null ? (
-                  currentHour < closingHour ? (
-                    <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-100 border border-emerald-300">
-                      <div className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></div>
-                      <span className="text-sm font-semibold text-emerald-700">Open Now</span>
-                    </div>
-                  ) : (
-                    <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-100 border border-red-300">
-                      <div className="w-2 h-2 rounded-full bg-red-600"></div>
-                      <span className="text-sm font-semibold text-red-700">Closed</span>
-                    </div>
-                  )
-                ) : null}
-              </div>
-            )}
           </div>
           
           {reasonText && (
@@ -329,7 +306,7 @@ export function BestTimesSection({ data }: BestTimesSectionProps) {
                   <span>Very Busy (76-100%)</span>
                 </div>
               </div>
-              {currentHour !== null && (
+              {isMounted && currentHour !== null && (
                 <div className="mt-3 text-center text-xs sm:text-sm text-gray-500">
                   <span className="inline-flex items-center gap-2">
                     <span className="inline-block w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-400"></span>
