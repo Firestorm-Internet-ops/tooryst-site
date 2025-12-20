@@ -1347,13 +1347,36 @@ def orchestrate_pipeline(attraction_slugs: List[str]):
     session = SessionLocal()
 
     try:
+        # Check if a pipeline is already running with the same attractions (deduplication)
+        # This prevents duplicate runs if the task is triggered multiple times within 10 seconds
+        # (e.g., file watcher triggering multiple times)
+        import json
+        metadata_json = json.dumps({"attraction_slugs": sorted(attraction_slugs) if attraction_slugs else []})
+        
+        existing_run = session.execute(text("""
+            SELECT id FROM pipeline_runs 
+            WHERE status = 'running' 
+            AND metadata = :metadata
+            AND started_at > DATE_SUB(NOW(), INTERVAL 10 SECOND)
+            LIMIT 1
+        """), {'metadata': metadata_json}).scalar()
+        
+        if existing_run:
+            logger.warning(f"Pipeline run {existing_run} already running with same attractions, skipping duplicate (triggered within 10 seconds)")
+            session.close()
+            return {
+                'status': 'skipped',
+                'reason': 'duplicate_run_detected',
+                'existing_pipeline_run_id': existing_run
+            }
+        
         # Create pipeline run record
         session.execute(text("""
             INSERT INTO pipeline_runs (started_at, status, attractions_processed, metadata)
             VALUES (CURRENT_TIMESTAMP, 'running', :count, :metadata)
         """), {
             'count': len(attraction_slugs),
-            'metadata': '{"attraction_slugs": ' + str(attraction_slugs).replace("'", '"') + '}'
+            'metadata': metadata_json
         })
         session.commit()
 

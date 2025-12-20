@@ -118,13 +118,37 @@ def process_excel_update(file_path: str):
     """
     # Setup separate logging
     logger = setup_import_logging()
-
-    logger.info("="*80)
-    logger.info("EXCEL IMPORT STARTED")
-    logger.info("="*80)
-    logger.info(f"📖 Reading Excel file: {file_path}")
     
+    # Acquire global lock to prevent concurrent imports
+    # This prevents duplicate processing if file watcher triggers multiple times
+    redis_client = None
+    lock_acquired = False
     try:
+        redis_client = redis.Redis(
+            host=os.getenv("REDIS_HOST", "localhost"),
+            port=int(os.getenv("REDIS_PORT", "6379")),
+            db=4,
+            decode_responses=True
+        )
+        
+        lock_key = "excel_import:lock"
+        lock_acquired = redis_client.set(lock_key, "1", ex=300, nx=True)  # 5 minute lock
+        
+        if not lock_acquired:
+            logger.warning("⏭️  Excel import already in progress, skipping duplicate")
+            return {
+                "status": "skipped",
+                "reason": "import_already_in_progress"
+            }
+    except Exception as e:
+        logger.warning(f"Could not acquire Redis lock: {e}, proceeding anyway")
+
+    try:
+        logger.info("="*80)
+        logger.info("EXCEL IMPORT STARTED")
+        logger.info("="*80)
+        logger.info(f"📖 Reading Excel file: {file_path}")
+        
         import pandas as pd
         import asyncio
         from datetime import datetime
@@ -442,7 +466,22 @@ def process_excel_update(file_path: str):
             if skipped_count > 0:
                 logger.info(f"  • Skipped: {skipped_count}")
 
+            # Trigger pipeline for new attractions BEFORE refreshing nearby
+            # This ensures pipeline starts even if nearby refresh is slow
+            logger.info("🚀 Triggering parallel pipeline for new attractions...")
+            from app.tasks.parallel_pipeline_tasks import orchestrate_pipeline
+
+            new_slugs = [a['slug'] for a in new_attractions]
+            pipeline_result = orchestrate_pipeline.delay(new_slugs)
+
+            logger.info(f"✓ Parallel pipeline triggered with task ID: {pipeline_result.id}")
+            logger.info(f"⚡ Processing {len(new_slugs)} attractions with staged parallelism")
+            logger.info("="*80)
+            logger.info("PIPELINE INITIALIZATION COMPLETE")
+            logger.info("="*80)
+
             # Refresh nearby attractions for all attractions in affected cities
+            # This is done AFTER pipeline trigger to avoid blocking pipeline start
             if affected_city_ids:
                 logger.info(f"🔄 Refreshing nearby attractions for cities: {affected_city_ids}")
                 loop = asyncio.new_event_loop()
@@ -513,19 +552,6 @@ def process_excel_update(file_path: str):
         finally:
             session.close()
         
-        # Trigger pipeline for new attractions
-        logger.info("🚀 Triggering parallel pipeline for new attractions...")
-        from app.tasks.parallel_pipeline_tasks import orchestrate_pipeline
-
-        new_slugs = [a['slug'] for a in new_attractions]
-        pipeline_result = orchestrate_pipeline.delay(new_slugs)
-
-        logger.info(f"✓ Parallel pipeline triggered with task ID: {pipeline_result.id}")
-        logger.info(f"⚡ Processing {len(new_slugs)} attractions with staged parallelism")
-        logger.info("="*80)
-        logger.info("PIPELINE INITIALIZATION COMPLETE")
-        logger.info("="*80)
-        
         return {
             "status": "success",
             "new_attractions": len(new_attractions),
@@ -557,6 +583,13 @@ def process_excel_update(file_path: str):
             "status": "error",
             "error": str(e)
         }
+    finally:
+        # Release the lock
+        if redis_client and lock_acquired:
+            try:
+                redis_client.delete("excel_import:lock")
+            except Exception as e:
+                logger.warning(f"Could not release Redis lock: {e}")
 
 
 def start_file_watcher():
