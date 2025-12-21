@@ -1,11 +1,9 @@
 import { Metadata } from 'next'
 import config from '@/lib/config'
+import { seoManager } from '@/lib/seo-manager'
 import privacyData from '@/data/privacy-policy.json'
 
-export const metadata: Metadata = {
-  title: `Privacy Policy - ${config.appName}`,
-  description: 'Our privacy policy and how we protect your data',
-}
+export const metadata: Metadata = seoManager.generateStaticPageMetadata('privacy');
 
 export default function PrivacyPolicyPage() {
   const lastUpdated = new Date().toLocaleDateString('en-US', {

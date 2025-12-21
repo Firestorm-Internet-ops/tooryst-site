@@ -1,17 +1,11 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import config from '@/lib/config'
+import { seoManager } from '@/lib/seo-manager'
 import contactData from '@/content/contact.json'
 import { Mail, Phone, MapPin, Clock } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: `Contact Us - ${config.appName}`,
-  description: 'Get in touch with Tooryst for support, partnerships, or any questions.',
-  openGraph: {
-    title: `Contact Us - ${config.appName}`,
-    description: 'Get in touch with Tooryst for support, partnerships, or any questions.',
-  },
-}
+export const metadata: Metadata = seoManager.generateStaticPageMetadata('contact');
 
 export default function ContactPage() {
   return (

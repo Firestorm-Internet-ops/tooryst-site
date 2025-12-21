@@ -11,6 +11,6 @@
       "Weather",
       "Insider tips"
     ],
-    "backgroundImage": "./herobg1.svg"
+    "backgroundImage": "/herobg1.svg"
   }
 }

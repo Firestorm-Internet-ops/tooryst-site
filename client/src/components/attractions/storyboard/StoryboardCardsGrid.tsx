@@ -9,7 +9,6 @@ import { AboutSnippetCard } from '@/components/attractions/storyboard/AboutSnipp
 import { NearbyAttractionCard } from '@/components/attractions/storyboard/NearbyAttractionCard';
 import { SocialCard } from '@/components/attractions/storyboard/SocialCard';
 import { SocialCardPlaceholder } from '@/components/attractions/storyboard/SocialCardPlaceholder';
-import Link from 'next/link';
 
 interface StoryboardCardsGridProps {
   data: AttractionPageResponse;
@@ -33,10 +32,7 @@ export function StoryboardCardsGrid({ data }: StoryboardCardsGridProps) {
             </div>
 
             <div className="lg:col-span-1 flex flex-col md:flex-row lg:flex-col gap-4">
-              <Link
-                href="#best-times"
-                className="flex-1"
-              >
+              <div className="flex-1 cursor-pointer">
                 <BestTimeTodayCard
                   bestTime={data.cards.best_time}
                   name={data.name}
@@ -45,10 +41,10 @@ export function StoryboardCardsGrid({ data }: StoryboardCardsGridProps) {
                   longitude={data.cards?.map?.longitude ?? null}
                   visitorInfo={data.visitor_info}
                 />
-              </Link>
+              </div>
 
               {data.cards.weather && (
-                <div className="flex-1">
+                <div className="flex-1 cursor-pointer">
                   <WeatherSnapshotCard
                     weather={data.cards.weather}
                     timezone={data.timezone}
@@ -62,60 +58,45 @@ export function StoryboardCardsGrid({ data }: StoryboardCardsGridProps) {
           <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-3 lg:auto-rows-fr gap-4 lg:min-h-[600px]">
 
             {/* Reviews */}
-            <Link
-              href="#reviews"
-              className="lg:col-start-1 lg:row-start-1"
-            >
+            <div className="lg:col-start-1 lg:row-start-1 cursor-pointer">
               <RatingSummaryCard review={data.cards.review} />
-            </Link>
+            </div>
 
             {/* Map (rows 1–2) - Desktop only */}
             {data.cards.map && (
-              <Link
-                href="#map"
-                className="hidden lg:block lg:col-start-2 lg:row-start-1 lg:row-span-2 h-full"
-              >
+              <div className="hidden lg:block lg:col-start-2 lg:row-start-1 lg:row-span-2 h-full cursor-pointer">
                 <MapTeaserCard map={data.cards.map} />
-              </Link>
+              </div>
             )}
 
             {/* Social (rows 1–3) */}
-            <Link
-              href="#social-videos"
-              className="hidden lg:block lg:col-start-3 lg:row-start-1 lg:row-span-3 h-full"
-            >
+            <div className="hidden lg:block lg:col-start-3 lg:row-start-1 lg:row-span-3 h-full cursor-pointer">
               {data.cards.social_video ? (
                 <SocialCard social={data.cards.social_video} />
               ) : (
                 <SocialCardPlaceholder />
               )}
-            </Link>
+            </div>
 
             {/* Tips */}
             {data.cards.tips && (
-              <Link
-                href="#tips"
-                className="hidden lg:block lg:col-start-1 lg:row-start-2"
-              >
+              <div className="hidden lg:block lg:col-start-1 lg:row-start-2 cursor-pointer">
                 <SafetyTipCard tips={data.cards.tips} />
-              </Link>
+              </div>
             )}
 
             {/* About */}
             {data.cards.about && (
-              <div className="hidden lg:block lg:col-start-1 lg:row-start-3">
+              <div className="hidden lg:block lg:col-start-1 lg:row-start-3 cursor-pointer">
                 <AboutSnippetCard about={data.cards.about} />
               </div>
             )}
 
             {/* Nearby */}
             {data.cards.nearby_attraction && (
-              <Link
-                href="#nearby-attractions"
-                className="hidden lg:block lg:col-start-2 lg:row-start-3"
-              >
+              <div className="hidden lg:block lg:col-start-2 lg:row-start-3 cursor-pointer">
                 <NearbyAttractionCard nearby={data.cards.nearby_attraction} />
-              </Link>
+              </div>
             )}
 
             {/* ───────────── Mobile / Tablet ───────────── */}
@@ -123,50 +104,41 @@ export function StoryboardCardsGrid({ data }: StoryboardCardsGridProps) {
               {/* Tips and Map cards on mobile/tablet */}
               <div className="flex flex-col md:flex-row gap-4">
                 {data.cards.tips && (
-                  <Link
-                    href="#tips"
-                    className="md:flex-1"
-                  >
+                  <div className="md:flex-1 cursor-pointer">
                     <SafetyTipCard tips={data.cards.tips} />
-                  </Link>
+                  </div>
                 )}
 
                 {data.cards.map && (
-                  <Link
-                    href="#map"
-                    className="md:flex-1"
-                  >
+                  <div className="md:flex-1 cursor-pointer">
                     <MapTeaserCard map={data.cards.map} />
-                  </Link>
+                  </div>
                 )}
               </div>
 
               {/* Social Video Card on left, About + Nearby stacked on right */}
               <div className="flex flex-col md:flex-row gap-4">
                 {/* Social Video Card - Left side on tablet */}
-                <Link
-                  href="#social-videos"
-                  className="md:flex-1"
-                >
+                <div className="md:flex-1 cursor-pointer">
                   {data.cards.social_video ? (
                     <SocialCard social={data.cards.social_video} />
                   ) : (
                     <SocialCardPlaceholder />
                   )}
-                </Link>
+                </div>
 
                 {/* About + Nearby cards stacked - Right side on tablet */}
                 <div className="flex flex-col gap-4 md:flex-1">
                   {data.cards.about && (
-                    <div>
+                    <div className="cursor-pointer">
                       <AboutSnippetCard about={data.cards.about} />
                     </div>
                   )}
 
                   {data.cards.nearby_attraction && (
-                    <Link href="#nearby-attractions">
+                    <div className="cursor-pointer">
                       <NearbyAttractionCard nearby={data.cards.nearby_attraction} />
-                    </Link>
+                    </div>
                   )}
                 </div>
               </div>
