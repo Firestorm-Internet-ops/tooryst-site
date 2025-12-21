@@ -24,6 +24,10 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 365, // 1 year cache for optimized images
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Enable image optimization for better performance
+    loader: 'default',
+    path: '/_next/image',
+    domains: [], // Use remotePatterns instead
     remotePatterns: [
       {
         protocol: 'https',
@@ -57,7 +61,13 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.fbcdn.net',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.example.com', // Add your CDN domain
+      },
     ],
+    // Unoptimized images for development (remove in production)
+    unoptimized: false,
   },
 
   // Headers for caching
