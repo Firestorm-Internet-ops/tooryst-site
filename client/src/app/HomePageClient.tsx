@@ -63,10 +63,6 @@ export function HomePageClient({
     router.push(`/search?q=${encodeURIComponent(trimmed)}`);
   };
 
-  const handleAttractionClick = (slug: string) => {
-    router.push(`/attractions/${slug}`);
-  };
-
   const globeCities = useMemo(() => {
     if (destinations && destinations.length > 0) {
       return destinations;
@@ -196,7 +192,7 @@ export function HomePageClient({
           <p className="text-sm text-gray-600">{config.text.trending.subheading}</p>
         </div>
         {trendingAttractions.length > 0 ? (
-          <AttractionsGrid attractions={trendingAttractions} onAttractionClick={handleAttractionClick} />
+          <AttractionsGrid attractions={trendingAttractions} />
         ) : (
           <div className="rounded-3xl border border-gray-200 bg-white p-6 text-center text-gray-600 shadow-sm">
             {config.text.trending.empty}

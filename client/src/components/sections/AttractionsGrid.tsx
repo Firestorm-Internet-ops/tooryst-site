@@ -4,13 +4,11 @@ import { AttractionCard } from '@/components/cards/AttractionCard';
 interface AttractionsGridProps {
   attractions: AttractionSummary[];
   loading?: boolean;
-  onAttractionClick?: (slug: string) => void;
 }
 
 export function AttractionsGrid({
   attractions,
   loading = false,
-  onAttractionClick,
 }: AttractionsGridProps) {
   if (loading) {
     return (
@@ -42,7 +40,6 @@ export function AttractionsGrid({
             city_name: attraction.city,
           }}
           variant="grid"
-          onView={onAttractionClick}
         />
       ))}
     </div>

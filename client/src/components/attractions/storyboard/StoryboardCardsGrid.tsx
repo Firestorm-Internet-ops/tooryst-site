@@ -20,9 +20,9 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
     <section className="pb-10">
       <div className="w-full px-4 lg:px-6">
         <div className="flex flex-col gap-4">
-          {/* First row: Hero slider + Best time + Weather */}
+
+          {/* ───────────────── Hero Row (UNCHANGED) ───────────────── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Hero slider on the left, spanning 2 columns - matches height of right column */}
             <div className="lg:col-span-2 h-full">
               <HeroImageSlider
                 name={data.name}
@@ -32,9 +32,7 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
               />
             </div>
 
-            {/* Right column: responsive layout for best time + weather */}
             <div className="lg:col-span-1 flex flex-col md:flex-row lg:flex-col gap-4">
-              {/* Best time card */}
               <div
                 className="cursor-pointer flex-1"
                 onClick={() => onCardClick?.('best_time')}
@@ -49,56 +47,103 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
                 />
               </div>
 
-              {/* Weather card (only render if present) */}
               {data.cards.weather && (
                 <div className="flex-1">
-                  <WeatherSnapshotCard weather={data.cards.weather} timezone={data.timezone} />
+                  <WeatherSnapshotCard
+                    weather={data.cards.weather}
+                    timezone={data.timezone}
+                  />
                 </div>
               )}
             </div>
           </div>
 
-          {/* Rows 2 & 3: Using CSS Grid with explicit positioning for social card to span both rows */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:auto-rows-auto">
-            {/* Row 2, Column 1: Review card */}
-            <div className="lg:col-start-1 lg:row-start-1">
-              {/* Review card */}
+          {/* ───────────────── Rows 2–4 (DESKTOP GRID) ───────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-3 lg:auto-rows-fr gap-4 lg:min-h-[600px]">
+
+            {/* Reviews */}
+            <div
+              className="lg:col-start-1 lg:row-start-1 cursor-pointer"
+              onClick={() => onCardClick?.('reviews')}
+            >
+              <RatingSummaryCard review={data.cards.review} />
+            </div>
+
+            {/* Map (rows 1–2) */}
+            {data.cards.map && (
               <div
-                className="cursor-pointer"
-                onClick={() => onCardClick?.('reviews')}
+                className="lg:col-start-2 lg:row-start-1 lg:row-span-2 cursor-pointer h-full"
+                onClick={() => onCardClick?.('map')}
               >
-                <RatingSummaryCard review={data.cards.review} />
+                <MapTeaserCard map={data.cards.map} />
               </div>
-            </div>
+            )}
 
-            {/* Row 2, Column 2: Tips and Map cards - responsive layout */}
-            <div className="lg:col-start-2 lg:row-start-1 flex flex-col md:flex-row lg:flex-col gap-4">
-              {/* Tips card */}
-              {data.cards.tips && (
-                <div
-                  className="cursor-pointer flex-1"
-                  onClick={() => onCardClick?.('tips')}
-                >
-                  <SafetyTipCard tips={data.cards.tips} />
-                </div>
-              )}
-
-              {/* Map card */}
-              {data.cards.map && (
-                <div
-                  className="cursor-pointer flex-1"
-                  onClick={() => onCardClick?.('map')}
-                >
-                  <MapTeaserCard map={data.cards.map} />
-                </div>
+            {/* Social (rows 1–3) */}
+            <div
+              className="hidden lg:block lg:col-start-3 lg:row-start-1 lg:row-span-3 h-full cursor-pointer"
+              onClick={() => onCardClick?.('social_videos')}
+            >
+              {data.cards.social_video ? (
+                <SocialCard social={data.cards.social_video} />
+              ) : (
+                <SocialCardPlaceholder />
               )}
             </div>
 
-            {/* Row 2-3, Column 3: Social card spanning 2 rows on desktop, responsive layout on tablet */}
-            <div className="lg:col-start-3 lg:row-start-1 lg:row-span-2 flex flex-col md:flex-row lg:flex-col gap-4">
+            {/* Tips */}
+            {data.cards.tips && (
+              <div
+                className="hidden lg:block lg:col-start-1 lg:row-start-2 cursor-pointer"
+                onClick={() => onCardClick?.('tips')}
+              >
+                <SafetyTipCard tips={data.cards.tips} />
+              </div>
+            )}
+
+            {/* About */}
+            {data.cards.about && (
+              <div className="hidden lg:block lg:col-start-1 lg:row-start-3">
+                <AboutSnippetCard about={data.cards.about} />
+              </div>
+            )}
+
+            {/* Nearby */}
+            {data.cards.nearby_attraction && (
+              <div
+                className="hidden lg:block lg:col-start-2 lg:row-start-3 cursor-pointer"
+                onClick={() => onCardClick?.('nearby_attractions')}
+              >
+                <NearbyAttractionCard nearby={data.cards.nearby_attraction} />
+              </div>
+            )}
+
+            {/* ───────────── Mobile / Tablet ───────────── */}
+            <div className="lg:hidden flex flex-col gap-4">
+              {/* Tips and Map cards on mobile/tablet */}
+              <div className="flex flex-col md:flex-row gap-4">
+                {data.cards.tips && (
+                  <div
+                    className="cursor-pointer md:flex-1"
+                    onClick={() => onCardClick?.('tips')}
+                  >
+                    <SafetyTipCard tips={data.cards.tips} />
+                  </div>
+                )}
+
+                {data.cards.map && (
+                  <div
+                    className="cursor-pointer md:flex-1"
+                    onClick={() => onCardClick?.('map')}
+                  >
+                    <MapTeaserCard map={data.cards.map} />
+                  </div>
+                )}
+              </div>
+
               {/* Social Video Card */}
               <div
-                className="cursor-pointer md:flex-1 lg:flex-none"
+                className="cursor-pointer"
                 onClick={() => onCardClick?.('social_videos')}
               >
                 {data.cards.social_video ? (
@@ -108,19 +153,17 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
                 )}
               </div>
 
-              {/* About + Nearby cards stacked on tablet, separate on desktop */}
-              <div className="flex flex-col gap-4 md:flex-1 lg:hidden">
-                {/* About snippet card */}
+              {/* About + Nearby cards */}
+              <div className="flex flex-col md:flex-row gap-4">
                 {data.cards.about && (
-                  <div className="h-full">
+                  <div className="md:flex-1">
                     <AboutSnippetCard about={data.cards.about} />
                   </div>
                 )}
 
-                {/* Nearby attraction card */}
                 {data.cards.nearby_attraction && (
                   <div
-                    className="cursor-pointer h-full"
+                    className="cursor-pointer md:flex-1"
                     onClick={() => onCardClick?.('nearby_attractions')}
                   >
                     <NearbyAttractionCard nearby={data.cards.nearby_attraction} />
@@ -129,22 +172,6 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
               </div>
             </div>
 
-            {/* Row 3, Column 1: About snippet card (desktop only) */}
-            {data.cards.about && (
-              <div className="hidden lg:block lg:col-start-1 lg:row-start-2 h-full">
-                <AboutSnippetCard about={data.cards.about} />
-              </div>
-            )}
-
-            {/* Row 3, Column 2: Nearby attraction card (desktop only) */}
-            {data.cards.nearby_attraction && (
-              <div
-                className="hidden lg:block lg:col-start-2 lg:row-start-2 cursor-pointer h-full"
-                onClick={() => onCardClick?.('nearby_attractions')}
-              >
-                <NearbyAttractionCard nearby={data.cards.nearby_attraction} />
-              </div>
-            )}
           </div>
         </div>
       </div>
