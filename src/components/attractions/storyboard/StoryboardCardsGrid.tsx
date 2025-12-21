@@ -69,10 +69,10 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
               <RatingSummaryCard review={data.cards.review} />
             </div>
 
-            {/* Map (rows 1–2) */}
+            {/* Map (rows 1–2) - Desktop only */}
             {data.cards.map && (
               <div
-                className="lg:col-start-2 lg:row-start-1 lg:row-span-2 cursor-pointer h-full"
+                className="hidden lg:block lg:col-start-2 lg:row-start-1 lg:row-span-2 cursor-pointer h-full"
                 onClick={() => onCardClick?.('map')}
               >
                 <MapTeaserCard map={data.cards.map} />
@@ -141,34 +141,37 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
                 )}
               </div>
 
-              {/* Social Video Card */}
-              <div
-                className="cursor-pointer"
-                onClick={() => onCardClick?.('social_videos')}
-              >
-                {data.cards.social_video ? (
-                  <SocialCard social={data.cards.social_video} />
-                ) : (
-                  <SocialCardPlaceholder />
-                )}
-              </div>
-
-              {/* About + Nearby cards */}
+              {/* Social Video Card on left, About + Nearby stacked on right */}
               <div className="flex flex-col md:flex-row gap-4">
-                {data.cards.about && (
-                  <div className="md:flex-1">
-                    <AboutSnippetCard about={data.cards.about} />
-                  </div>
-                )}
+                {/* Social Video Card - Left side on tablet */}
+                <div
+                  className="cursor-pointer md:flex-1"
+                  onClick={() => onCardClick?.('social_videos')}
+                >
+                  {data.cards.social_video ? (
+                    <SocialCard social={data.cards.social_video} />
+                  ) : (
+                    <SocialCardPlaceholder />
+                  )}
+                </div>
 
-                {data.cards.nearby_attraction && (
-                  <div
-                    className="cursor-pointer md:flex-1"
-                    onClick={() => onCardClick?.('nearby_attractions')}
-                  >
-                    <NearbyAttractionCard nearby={data.cards.nearby_attraction} />
-                  </div>
-                )}
+                {/* About + Nearby cards stacked - Right side on tablet */}
+                <div className="flex flex-col gap-4 md:flex-1">
+                  {data.cards.about && (
+                    <div>
+                      <AboutSnippetCard about={data.cards.about} />
+                    </div>
+                  )}
+
+                  {data.cards.nearby_attraction && (
+                    <div
+                      className="cursor-pointer"
+                      onClick={() => onCardClick?.('nearby_attractions')}
+                    >
+                      <NearbyAttractionCard nearby={data.cards.nearby_attraction} />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
