@@ -20,6 +20,7 @@ export function SectionsNavbar({ data, activeSection, onScrollToSection }: Secti
   const [isVisible, setIsVisible] = useState(false);
   const [clickedSection, setClickedSection] = useState<string | null>(null);
   const lastScrollTime = useRef<number>(0);
+  const tabsContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Define sections in order with icons
   const sections: SectionItem[] = [
@@ -74,6 +75,19 @@ export function SectionsNavbar({ data, activeSection, onScrollToSection }: Secti
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isVisible]);
+
+  useEffect(() => {
+    if (!isSticky || !tabsContainerRef.current) return;
+
+    const container = tabsContainerRef.current;
+
+    // Smoothly scroll tabs back to the start
+    container.scrollTo({
+      left: 0,
+      behavior: 'smooth',
+    });
+  }, [isSticky]);
+
 
   const scrollToSection = (sectionId: string) => {
     // Immediately set the clicked section as active
@@ -152,7 +166,7 @@ export function SectionsNavbar({ data, activeSection, onScrollToSection }: Secti
         `
       }} />
       <nav
-        className={`w-full bg-gradient-to-r from-white via-gray-50 to-white backdrop-blur-md border-b transition-all duration-500 z-50 ${
+        className={`w-full bg-gradient-to-r from-white via-gray-50 to-white backdrop-blur-md border-b transition-all duration-500 z-50 pointer-events-none ${
           isSticky 
             ? 'fixed top-16 left-0 right-0 shadow-lg border-gray-200/80 bg-white/95' 
             : 'relative border-gray-100'
@@ -160,13 +174,11 @@ export function SectionsNavbar({ data, activeSection, onScrollToSection }: Secti
           isVisible || isSticky ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
         }`}
         id="sections-navbar"
-        style={{
-          transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
       >
-        <div className="w-full max-w-7xl mx-auto px-4 lg:px-6">
+        <div className="w-full max-w-7xl mx-auto px-4 lg:px-6 pointer-events-auto">
           <div
-            className="flex items-center justify-center gap-2 overflow-x-auto py-4 hide-scrollbar"
+            ref={tabsContainerRef}
+            className="flex items-center gap-2 overflow-x-auto py-4 hide-scrollbar justify-start lg:justify-center px-2"
             role="tablist"
             aria-label="Section navigation"
           >
