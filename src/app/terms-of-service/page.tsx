@@ -1,11 +1,9 @@
 import { Metadata } from 'next'
 import config from '@/lib/config'
+import { seoManager } from '@/lib/seo-manager'
 import tosData from '@/data/terms-of-service.json'
 
-export const metadata: Metadata = {
-  title: `Terms of Service - ${config.appName}`,
-  description: 'Our terms of service and user agreement',
-}
+export const metadata: Metadata = seoManager.generateStaticPageMetadata('terms');
 
 export default function TermsOfServicePage() {
   const lastUpdated = new Date().toLocaleDateString('en-US', {

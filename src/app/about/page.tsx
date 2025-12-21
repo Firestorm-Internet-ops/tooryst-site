@@ -3,16 +3,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import config from '@/lib/config'
 import aboutData from '@/content/about.json'
+import { seoManager } from '@/lib/seo-manager'
 import { MapPin, Users, Globe, Zap, Clock, Award } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: `About Us - ${config.appName}`,
-  description: config.companyDescription,
-  openGraph: {
-    title: `About Us - ${config.appName}`,
-    description: config.companyDescription,
-  },
-}
+export const metadata: Metadata = seoManager.generateStaticPageMetadata('about');
 
 export default function AboutPage() {
   return (

@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import { CityPageClient } from './CityPageClient';
 import { CityDetail } from '@/types/api';
 import { config } from '@/lib/config';
+import { seoManager } from '@/lib/seo-manager';
+import { CityStructuredData } from '@/components/seo/StructuredData';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -44,49 +46,29 @@ export async function generateMetadata(
   const slug = resolvedParams?.['city-slug']?.toLowerCase();
   if (!slug) {
     return {
-      title: 'City not found | Storyboard',
+      title: 'City not found | Tooryst',
     };
   }
 
   const city = await fetchCity(slug);
   if (!city) {
     return {
-      title: 'City not found | Storyboard',
-      description: 'Explore verified travel intelligence on Storyboard.',
+      title: 'City not found | Tooryst',
+      description: 'Explore verified travel intelligence on Tooryst.',
     };
   }
 
-  const title = `${city.name} | Storyboard Travel Guide`;
-  const description = `Discover ${city.attraction_count ?? 'the best'} attractions, maps, and live travel intel for ${city.name}.`;
-  const canonical = `${APP_BASE_URL}/${slug}`;
-  const imageUrl = config.images.fallbackCity;
-
-  return {
-    title,
-    description,
-    alternates: {
-      canonical,
-    },
-    openGraph: {
-      title,
-      description,
-      url: canonical,
-      images: [
-        {
-          url: imageUrl,
-          width: 1200,
-          height: 630,
-          alt: `${city.name} skyline`,
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [imageUrl],
-    },
-  };
+  // Use the new SEO manager to generate metadata
+  return await seoManager.generateCityMetadata({
+    name: city.name,
+    slug: city.slug,
+    attraction_count: city.attraction_count,
+    description: undefined, // CityDetail doesn't have description
+    latitude: city.latitude || city.lat || undefined,
+    longitude: city.longitude || city.lng || undefined,
+    country: city.country,
+    hero_image: undefined, // CityDetail doesn't have hero_image, will use collage
+  });
 }
 
 export default async function CityPage({ params, searchParams }: CityPageProps) {

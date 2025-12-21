@@ -4,6 +4,8 @@ import { HomePageClient, FeaturedCity } from './HomePageClient';
 import homeContent from '@/content/home.json';
 import type { AttractionSummary, City } from '@/types/api';
 import { config } from '@/lib/config';
+import { seoManager } from '@/lib/seo-manager';
+import { OrganizationStructuredData, WebsiteStructuredData } from '@/components/seo/StructuredData';
 
 const API_BASE_URL = config.apiBaseUrl;
 const APP_URL = config.appUrl;
@@ -111,27 +113,7 @@ function buildDestinations(cities: FeaturedCity[]): DestinationMarker[] {
   }));
 }
 
-export const metadata: Metadata = {
-  title: 'Tooryst | Discover the Best Time to Travel',
-  description:
-    'Find the perfect time to visit any destination with live crowd signals, hyperlocal weather, and visitor sentiment.',
-  keywords: ['travel', 'destinations', 'attractions', 'cities', 'crowd levels', 'weather insights'],
-  openGraph: {
-    title: 'Tooryst | Discover the Best Time to Travel',
-    description:
-      'Real-time destination intelligence for cities and attractions worldwide. Crowd, weather, and visitor data in one place.',
-    url: APP_URL,
-    siteName: 'Tooryst',
-    images: [
-      {
-        url: config.images.fallbackHero,
-        width: 1200,
-        height: 630,
-        alt: 'Tooryst destination collage',
-      },
-    ],
-  },
-};
+export const metadata: Metadata = seoManager.generateHomepageMetadata();
 
 export default async function HomePage() {
   const [featuredCities, trendingAttractions] = await Promise.all([
@@ -140,28 +122,6 @@ export default async function HomePage() {
   ]);
 
   const destinations = buildDestinations(featuredCities);
-
-  const organizationSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Tooryst',
-    url: APP_URL,
-    logo: `${APP_URL}/logo.png`,
-    sameAs: ['https://twitter.com/', 'https://www.instagram.com/'],
-  };
-
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Home',
-        item: APP_URL,
-      },
-    ],
-  };
 
   return (
     <>
@@ -173,16 +133,8 @@ export default async function HomePage() {
           destinations={destinations}
         />
       </main>
-      <script
-        type="application/ld+json"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      <OrganizationStructuredData />
+      <WebsiteStructuredData />
     </>
   );
 }
