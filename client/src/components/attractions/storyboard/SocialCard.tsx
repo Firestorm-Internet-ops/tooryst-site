@@ -1,7 +1,6 @@
 'use client';
 
 import { SocialVideoCard } from '@/types/attraction-page';
-import React from 'react';
 
 interface SocialCardProps {
   social: SocialVideoCard;
@@ -39,8 +38,11 @@ export function SocialCard({ social }: SocialCardProps) {
   };
 
   return (
-    <article className="rounded-3xl bg-gray-50 border border-gray-200 overflow-hidden w-full h-full flex flex-col">
-      {/* YouTube video with constrained height - only show on desktop */}
+    <article 
+      className="rounded-3xl bg-gray-50 border border-gray-200 overflow-hidden w-full h-full flex flex-col cursor-pointer hover:border-gray-300 transition-colors"
+      onClick={handleScrollToSocial}
+    >
+      {/* YouTube video - only show on desktop */}
       <div className="relative w-full flex-1 hidden lg:block">
         <iframe
           src={social.embed_url}
@@ -52,35 +54,47 @@ export function SocialCard({ social }: SocialCardProps) {
         />
       </div>
       
-      {/* Video title */}
-      {social.title && (
-        <div className="p-4 bg-white lg:bg-transparent lg:absolute lg:bottom-0 lg:left-0 lg:right-0 lg:bg-gradient-to-t lg:from-black/70 lg:to-transparent lg:text-white">
-          <h3 className="text-sm font-semibold text-gray-900 lg:text-white line-clamp-2">
-            {social.title}
-          </h3>
-          <a
-            href="#section-social-videos"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollToSocial();
-            }}
-            className="text-xs text-primary-600 lg:text-white hover:text-primary-700 lg:hover:text-gray-200 mt-2 inline-flex items-center gap-1 font-medium transition-colors cursor-pointer"
-          >
-            View more →
-          </a>
-        </div>
-      )}
-      
-      {/* Placeholder content for mobile/tablet when no video is shown */}
-      <div className="lg:hidden flex-1 flex items-center justify-center p-6">
-        <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-3 bg-primary-100 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-primary-600" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
+      {/* Mobile/Tablet content - show video info and play button */}
+      <div className="lg:hidden flex-1 flex flex-col">
+        {/* Video thumbnail or placeholder */}
+        <div className="relative flex-1 bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center">
+          {social.thumbnail_url ? (
+            <img 
+              src={social.thumbnail_url} 
+              alt={social.title || 'Video thumbnail'}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-3 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+            </div>
+          )}
+          
+          {/* Play button overlay */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg opacity-90 hover:opacity-100 transition-opacity">
+              <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
           </div>
-          <p className="text-sm text-gray-600 mb-2">Video content</p>
-          <p className="text-xs text-gray-500">Tap to view videos</p>
+        </div>
+        
+        {/* Video info */}
+        <div className="p-4">
+          <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2">
+            {social.title || 'Social Video'}
+          </h3>
+          <p className="text-xs text-gray-600 mb-2">
+            {social.platform || 'YouTube'}
+          </p>
+          <p className="text-xs text-primary-600 font-medium">
+            Tap to view videos →
+          </p>
         </div>
       </div>
     </article>
