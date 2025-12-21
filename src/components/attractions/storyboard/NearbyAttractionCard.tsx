@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Star, MapPin } from 'lucide-react';
 import { NearbyAttractionCard as NearbyAttractionCardType } from '@/types/attraction-page';
+import { getImageSizes, generateBlurDataURL } from '@/lib/image-utils';
 
 interface NearbyAttractionCardProps {
   nearby: NearbyAttractionCardType;
@@ -38,8 +39,11 @@ export function NearbyAttractionCard({ nearby }: NearbyAttractionCardProps) {
           alt={nearby.name}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(min-width: 1024px) 33vw, 100vw"
+          sizes={getImageSizes('card')}
           loading="lazy"
+          placeholder="blur"
+          blurDataURL={generateBlurDataURL()}
+          quality={85}
         />
       )}
 

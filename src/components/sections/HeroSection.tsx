@@ -2,8 +2,12 @@
 
 import { ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { SearchInput } from '@/components/form/SearchInput';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { useImagePreloader } from '@/hooks/useImagePreloader';
+import { getImageSizes, generateBlurDataURL } from '@/lib/image-utils';
 import { cn } from '@/lib/utils';
 
 interface HeroSectionProps {
@@ -33,6 +37,16 @@ export function HeroSection({
   searchPlaceholder,
 }: HeroSectionProps) {
   const router = useRouter();
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Validate background image URL
+  const isValidImageUrl = backgroundImage && backgroundImage.trim() !== '';
+
+  // Preload the hero image for faster loading
+  const { isLoading: preloading } = useImagePreloader(
+    isValidImageUrl ? [backgroundImage] : [],
+    { enabled: !!isValidImageUrl, priority: true }
+  );
 
   const handleSearch = (value: string) => {
     const trimmed = value.trim();
@@ -46,16 +60,40 @@ export function HeroSection({
     router.push(`/search?q=${encodeURIComponent(trimmed)}`);
   };
 
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
+
   return (
     <section
       data-testid="hero-section"
-      className={cn(
-        'relative w-full min-h-[80vh] bg-gradient-to-b from-blue-600 to-blue-800',
-        backgroundImage && 'bg-cover bg-center'
-      )}
-      style={backgroundImage ? { backgroundImage: `url(${backgroundImage})` } : undefined}
+      className="relative w-full min-h-[80vh] bg-gradient-to-b from-blue-600 to-blue-800 overflow-hidden"
     >
+      {/* Background Image */}
+      {isValidImageUrl && (
+        <div className="absolute inset-0">
+          <OptimizedImage
+            src={backgroundImage}
+            alt="Hero background"
+            fill
+            className={cn(
+              'object-cover transition-opacity duration-700',
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            )}
+            sizes={getImageSizes('hero')}
+            priority
+            quality={90}
+            placeholder="blur"
+            blurDataURL={generateBlurDataURL('#1e40af')}
+            onLoad={handleImageLoad}
+          />
+        </div>
+      )}
+      
+      {/* Overlay */}
       <div className="absolute inset-0 bg-black/50" aria-hidden="true" />
+      
+      {/* Content */}
       <div className="relative z-10 mx-auto flex min-h-[80vh] w-full max-w-5xl flex-col items-center justify-center px-5 py-12 text-white sm:px-8">
         <div className="flex w-full flex-col items-center gap-4 text-center sm:gap-6">
           <p className="text-xs uppercase tracking-[0.4em] text-primary-100 sm:text-sm">{eyebrow}</p>

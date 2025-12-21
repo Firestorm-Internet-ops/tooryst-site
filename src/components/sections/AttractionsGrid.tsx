@@ -28,7 +28,7 @@ export function AttractionsGrid({
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-5">
-      {attractions.map((attraction) => (
+      {attractions.map((attraction, index) => (
         <AttractionCard
           key={attraction.slug}
           attraction={{
@@ -40,6 +40,8 @@ export function AttractionsGrid({
             city_name: attraction.city,
           }}
           variant="grid"
+          priority={index < 4} // Prioritize first 4 images above the fold
+          index={index}
         />
       ))}
     </div>

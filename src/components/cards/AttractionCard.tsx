@@ -5,6 +5,7 @@ import { RatingStars } from '@/components/ui/RatingStars';
 import { PlaceholderCard } from '@/components/cards/PlaceholderCard';
 import { config } from '@/lib/config';
 import { cityNameToSlug } from '@/lib/slug-utils';
+import { getImageSizes, generateBlurDataURL } from '@/lib/image-utils';
 
 interface AttractionCardProps {
   attraction: {
@@ -18,6 +19,8 @@ interface AttractionCardProps {
   variant?: 'grid' | 'popup';
   onView?: (slug: string) => void;
   onClose?: () => void;
+  priority?: boolean; // For above-the-fold images
+  index?: number; // For determining priority
 }
 
 export function AttractionCard({
@@ -25,10 +28,15 @@ export function AttractionCard({
   variant = 'grid',
   onView,
   onClose,
+  priority = false,
+  index = 0,
 }: AttractionCardProps) {
   const hasImage = attraction.first_image_url && attraction.first_image_url.trim() !== '';
   const imageUrl = hasImage ? (attraction.first_image_url as string) : config.images.fallbackAttraction;
   const isPlaceholder = !hasImage;
+  
+  // Determine if this image should be prioritized (first 3 images)
+  const shouldPrioritize = priority || index < 3;
 
   // Show placeholder if no image and no name
   if (isPlaceholder && !attraction.name) {
@@ -50,7 +58,12 @@ export function AttractionCard({
             alt={attraction.name}
             fill
             className={`object-cover ${isPlaceholder ? 'opacity-40' : ''}`}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            sizes={getImageSizes('thumbnail')}
+            priority={shouldPrioritize}
+            loading={shouldPrioritize ? 'eager' : 'lazy'}
+            placeholder="blur"
+            blurDataURL={generateBlurDataURL()}
+            quality={85}
           />
           {isPlaceholder && (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -125,7 +138,12 @@ export function AttractionCard({
           alt={attraction.name}
           fill
           className={`object-cover transition-transform duration-200 ${isPlaceholder ? 'opacity-40' : 'group-hover:scale-105'}`}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          sizes={getImageSizes('card')}
+          priority={shouldPrioritize}
+          loading={shouldPrioritize ? 'eager' : 'lazy'}
+          placeholder="blur"
+          blurDataURL={generateBlurDataURL()}
+          quality={85}
         />
         {isPlaceholder && (
           <div className="absolute inset-0 flex items-center justify-center">

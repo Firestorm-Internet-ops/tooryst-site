@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { HeroImage } from '@/types/attraction-page';
+import { getImageSizes, generateBlurDataURL, preloadImages } from '@/lib/image-utils';
 
 interface HeroImageSliderProps {
   name: string;
@@ -27,6 +28,17 @@ export function HeroImageSlider({
 
   const [index, setIndex] = React.useState(0);
   const [isPaused, setIsPaused] = React.useState(false);
+  const [imagesPreloaded, setImagesPreloaded] = React.useState(false);
+
+  // Preload next few images for smooth transitions
+  React.useEffect(() => {
+    if (sorted.length > 1) {
+      const nextImages = sorted.slice(1, 4).map(img => img.url); // Preload next 3 images
+      preloadImages(nextImages).then(() => {
+        setImagesPreloaded(true);
+      });
+    }
+  }, [sorted]);
 
   const goNext = React.useCallback(() => {
     setIndex((prev) => (prev + 1) % sorted.length);
@@ -63,9 +75,12 @@ export function HeroImageSlider({
           alt={current.alt || name}
           fill
           className="object-cover"
-          priority={index === 0}
-          loading={index === 0 ? 'eager' : 'lazy'}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
+          priority={true} // Hero images are always priority
+          loading="eager"
+          placeholder="blur"
+          blurDataURL={generateBlurDataURL()}
+          sizes={getImageSizes('hero')}
+          quality={90} // Higher quality for hero images
         />
 
         {/* Dark gradient overlay */}
