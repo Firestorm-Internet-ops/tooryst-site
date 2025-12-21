@@ -1,15 +1,22 @@
 import Link from 'next/link';
-import { Twitter, Linkedin, Github, Facebook, Instagram, Youtube } from 'lucide-react';
+import { 
+  FaTwitter, 
+  FaLinkedin, 
+  FaPinterest, 
+  FaFacebook, 
+  FaInstagram, 
+  FaYoutube 
+} from 'react-icons/fa';
 import footerData from '@/data/footer-links.json';
 import config from '@/lib/config';
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
-  Twitter,
-  Linkedin,
-  Github,
-  Facebook,
-  Instagram,
-  Youtube,
+  Twitter: FaTwitter,
+  Linkedin: FaLinkedin,
+  Pinterest: FaPinterest,
+  Facebook: FaFacebook,
+  Instagram: FaInstagram,
+  Youtube: FaYoutube,
 };
 
 export function Footer() {

@@ -112,22 +112,22 @@ function buildDestinations(cities: FeaturedCity[]): DestinationMarker[] {
 }
 
 export const metadata: Metadata = {
-  title: 'Storyboard | Discover the Best Time to Travel',
+  title: 'Tooryst | Discover the Best Time to Travel',
   description:
     'Find the perfect time to visit any destination with live crowd signals, hyperlocal weather, and visitor sentiment.',
   keywords: ['travel', 'destinations', 'attractions', 'cities', 'crowd levels', 'weather insights'],
   openGraph: {
-    title: 'Storyboard | Discover the Best Time to Travel',
+    title: 'Tooryst | Discover the Best Time to Travel',
     description:
       'Real-time destination intelligence for cities and attractions worldwide. Crowd, weather, and visitor data in one place.',
     url: APP_URL,
-    siteName: 'Storyboard',
+    siteName: 'Tooryst',
     images: [
       {
         url: config.images.fallbackHero,
         width: 1200,
         height: 630,
-        alt: 'Storyboard destination collage',
+        alt: 'Tooryst destination collage',
       },
     ],
   },
@@ -144,7 +144,7 @@ export default async function HomePage() {
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Storyboard',
+    name: 'Tooryst',
     url: APP_URL,
     logo: `${APP_URL}/logo.png`,
     sameAs: ['https://twitter.com/', 'https://www.instagram.com/'],

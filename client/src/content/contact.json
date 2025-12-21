@@ -1,17 +1,17 @@
 {
   "hero": {
     "title": "Contact Us",
-    "subtitle": "Get in touch with our team for support, partnerships, or any questions about Attraction Storyboard",
+    "subtitle": "Get in touch with our team for support, partnerships, or any questions about Tooryst",
     "description": "We're here to help you discover and experience attractions like never before."
   },
   "intro": {
     "title": "Let's Connect",
-    "description": "Attraction Storyboard is built on a passion for transforming how travelers explore the world. Whether you're a curious traveler, a local explorer, a content creator, or part of the tourism industry, we'd love to hear from you and explore how we can work together."
+    "description": "Tooryst is built on a passion for transforming how travelers explore the world. Whether you're a curious traveler, a local explorer, a content creator, or part of the tourism industry, we'd love to hear from you and explore how we can work together."
   },
   "contactInfo": {
     "email": {
       "label": "Email",
-      "value": "hello@attractionstoryboard.com",
+      "value": "travel@thebettervacation.com",
       "note": "For general inquiries, partnerships, and support"
     },
     "responseTime": "We typically respond within 24 hours."
@@ -19,15 +19,15 @@
   "details": [
     {
       "title": "Email",
-      "content": "hello@attractionstoryboard.com"
+      "content": "travel@thebettervacation.com"
     },
     {
       "title": "Phone",
-      "content": "+1 (555) 123-4567"
+      "content": "+91 73588-08488"
     },
     {
       "title": "Address",
-      "content": "Attraction Storyboard HQ, San Francisco, CA 94105, USA"
+      "content": "Firestorm Internet, 203, 30C, Bollineni Hillside, Perumbakkam Main Road, Nookampalayam, Chennai, India – 600126"
     }
   ],
   "businessHours": {
@@ -35,11 +35,11 @@
     "hours": [
       {
         "day": "Monday to Friday",
-        "time": "9:00 AM – 6:00 PM PST"
+        "time": "10:00 AM – 6:00 PM"
       },
       {
-        "day": "Saturday & Sunday",
-        "time": "By appointment"
+        "day": "Saturday",
+        "time": "10:00 AM – 1:00 PM"
       }
     ]
   },
