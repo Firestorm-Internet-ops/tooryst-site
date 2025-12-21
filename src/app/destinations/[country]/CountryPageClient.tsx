@@ -73,13 +73,15 @@ export function CountryPageClient({ countryCode }: { countryCode: string }) {
 
   const handleCityNavigate = React.useCallback(
     (slug: string) => {
-      router.push(`/cities/${slug}`);
+      router.push(`/${slug}`);
     },
     [router]
   );
 
   const handleAttractionNavigate = React.useCallback(
     (slug: string) => {
+      // For now, keep using the old URL structure since we don't have city slug here
+      // TODO: Update this when we have city slug in attraction data
       router.push(`/attractions/${slug}`);
     },
     [router]
@@ -113,7 +115,7 @@ export function CountryPageClient({ countryCode }: { countryCode: string }) {
                 <h3 className="text-lg font-semibold text-gray-900">{city.name}</h3>
                 <p className="text-sm text-gray-500">{city.count} attractions</p>
                 <Link
-                  href={`/cities/${city.slug}`}
+                  href={`/${city.slug}`}
                   className="text-primary-600 text-sm font-medium hover:underline mt-2"
                 >
                   View city →

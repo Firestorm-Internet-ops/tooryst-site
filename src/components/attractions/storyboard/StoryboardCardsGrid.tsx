@@ -9,13 +9,13 @@ import { AboutSnippetCard } from '@/components/attractions/storyboard/AboutSnipp
 import { NearbyAttractionCard } from '@/components/attractions/storyboard/NearbyAttractionCard';
 import { SocialCard } from '@/components/attractions/storyboard/SocialCard';
 import { SocialCardPlaceholder } from '@/components/attractions/storyboard/SocialCardPlaceholder';
+import Link from 'next/link';
 
 interface StoryboardCardsGridProps {
   data: AttractionPageResponse;
-  onCardClick?: (sectionType: string) => void;
 }
 
-export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridProps) {
+export function StoryboardCardsGrid({ data }: StoryboardCardsGridProps) {
   return (
     <section className="pb-10">
       <div className="w-full px-4 lg:px-6">
@@ -33,9 +33,9 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
             </div>
 
             <div className="lg:col-span-1 flex flex-col md:flex-row lg:flex-col gap-4">
-              <div
-                className="cursor-pointer flex-1"
-                onClick={() => onCardClick?.('best_time')}
+              <Link
+                href="#best-times"
+                className="flex-1"
               >
                 <BestTimeTodayCard
                   bestTime={data.cards.best_time}
@@ -45,7 +45,7 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
                   longitude={data.cards?.map?.longitude ?? null}
                   visitorInfo={data.visitor_info}
                 />
-              </div>
+              </Link>
 
               {data.cards.weather && (
                 <div className="flex-1">
@@ -62,43 +62,43 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
           <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-3 lg:auto-rows-fr gap-4 lg:min-h-[600px]">
 
             {/* Reviews */}
-            <div
-              className="lg:col-start-1 lg:row-start-1 cursor-pointer"
-              onClick={() => onCardClick?.('reviews')}
+            <Link
+              href="#reviews"
+              className="lg:col-start-1 lg:row-start-1"
             >
               <RatingSummaryCard review={data.cards.review} />
-            </div>
+            </Link>
 
             {/* Map (rows 1–2) - Desktop only */}
             {data.cards.map && (
-              <div
-                className="hidden lg:block lg:col-start-2 lg:row-start-1 lg:row-span-2 cursor-pointer h-full"
-                onClick={() => onCardClick?.('map')}
+              <Link
+                href="#map"
+                className="hidden lg:block lg:col-start-2 lg:row-start-1 lg:row-span-2 h-full"
               >
                 <MapTeaserCard map={data.cards.map} />
-              </div>
+              </Link>
             )}
 
             {/* Social (rows 1–3) */}
-            <div
-              className="hidden lg:block lg:col-start-3 lg:row-start-1 lg:row-span-3 h-full cursor-pointer"
-              onClick={() => onCardClick?.('social_videos')}
+            <Link
+              href="#social-videos"
+              className="hidden lg:block lg:col-start-3 lg:row-start-1 lg:row-span-3 h-full"
             >
               {data.cards.social_video ? (
                 <SocialCard social={data.cards.social_video} />
               ) : (
                 <SocialCardPlaceholder />
               )}
-            </div>
+            </Link>
 
             {/* Tips */}
             {data.cards.tips && (
-              <div
-                className="hidden lg:block lg:col-start-1 lg:row-start-2 cursor-pointer"
-                onClick={() => onCardClick?.('tips')}
+              <Link
+                href="#tips"
+                className="hidden lg:block lg:col-start-1 lg:row-start-2"
               >
                 <SafetyTipCard tips={data.cards.tips} />
-              </div>
+              </Link>
             )}
 
             {/* About */}
@@ -110,12 +110,12 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
 
             {/* Nearby */}
             {data.cards.nearby_attraction && (
-              <div
-                className="hidden lg:block lg:col-start-2 lg:row-start-3 cursor-pointer"
-                onClick={() => onCardClick?.('nearby_attractions')}
+              <Link
+                href="#nearby-attractions"
+                className="hidden lg:block lg:col-start-2 lg:row-start-3"
               >
                 <NearbyAttractionCard nearby={data.cards.nearby_attraction} />
-              </div>
+              </Link>
             )}
 
             {/* ───────────── Mobile / Tablet ───────────── */}
@@ -123,37 +123,37 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
               {/* Tips and Map cards on mobile/tablet */}
               <div className="flex flex-col md:flex-row gap-4">
                 {data.cards.tips && (
-                  <div
-                    className="cursor-pointer md:flex-1"
-                    onClick={() => onCardClick?.('tips')}
+                  <Link
+                    href="#tips"
+                    className="md:flex-1"
                   >
                     <SafetyTipCard tips={data.cards.tips} />
-                  </div>
+                  </Link>
                 )}
 
                 {data.cards.map && (
-                  <div
-                    className="cursor-pointer md:flex-1"
-                    onClick={() => onCardClick?.('map')}
+                  <Link
+                    href="#map"
+                    className="md:flex-1"
                   >
                     <MapTeaserCard map={data.cards.map} />
-                  </div>
+                  </Link>
                 )}
               </div>
 
               {/* Social Video Card on left, About + Nearby stacked on right */}
               <div className="flex flex-col md:flex-row gap-4">
                 {/* Social Video Card - Left side on tablet */}
-                <div
-                  className="cursor-pointer md:flex-1"
-                  onClick={() => onCardClick?.('social_videos')}
+                <Link
+                  href="#social-videos"
+                  className="md:flex-1"
                 >
                   {data.cards.social_video ? (
                     <SocialCard social={data.cards.social_video} />
                   ) : (
                     <SocialCardPlaceholder />
                   )}
-                </div>
+                </Link>
 
                 {/* About + Nearby cards stacked - Right side on tablet */}
                 <div className="flex flex-col gap-4 md:flex-1">
@@ -164,12 +164,9 @@ export function StoryboardCardsGrid({ data, onCardClick }: StoryboardCardsGridPr
                   )}
 
                   {data.cards.nearby_attraction && (
-                    <div
-                      className="cursor-pointer"
-                      onClick={() => onCardClick?.('nearby_attractions')}
-                    >
+                    <Link href="#nearby-attractions">
                       <NearbyAttractionCard nearby={data.cards.nearby_attraction} />
-                    </div>
+                    </Link>
                   )}
                 </div>
               </div>

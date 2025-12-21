@@ -47,7 +47,7 @@ export function CityHeroCollage({
           await navigator.share({
             title: `${city.name} • Toorysts`,
             text: `Discover attractions in ${city.name}`,
-            url: typeof window !== 'undefined' ? `${window.location.origin}/cities/${city.slug}` : `/cities/${city.slug}`,
+            url: typeof window !== 'undefined' ? `${window.location.origin}/${city.slug}` : `/${city.slug}`,
           });
         } catch (error: any) {
           // User canceled the share dialog or share failed
@@ -60,7 +60,7 @@ export function CityHeroCollage({
         }
       } else {
         // Fallback: Copy to clipboard if share API not available
-        const url = typeof window !== 'undefined' ? `${window.location.origin}/cities/${city.slug}` : `/cities/${city.slug}`;
+        const url = typeof window !== 'undefined' ? `${window.location.origin}/${city.slug}` : `/${city.slug}`;
         try {
           await navigator.clipboard.writeText(url);
           // Optionally show a toast notification here

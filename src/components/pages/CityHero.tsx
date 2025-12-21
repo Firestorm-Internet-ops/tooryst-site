@@ -35,7 +35,7 @@ export function CityHero({
       navigator.share({
         title: `${city.name} • Storyboard`,
         text: `Discover attractions in ${city.name}`,
-        url: `/cities/${city.slug}`,
+        url: `/${city.slug}`,
       });
     }
   };

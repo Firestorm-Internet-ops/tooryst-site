@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Search, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useSearch } from '@/hooks/useSearch';
 import { config } from '@/lib/config';
@@ -58,14 +59,18 @@ export function SearchInput({
     onSearch(query.trim());
   };
 
-  const handleSuggestionClick = (suggestion: { type: 'city' | 'attraction'; name: string; slug: string }) => {
+  const handleSuggestionClick = () => {
     setShowDropdown(false);
-    
-    // Navigate directly to the specific page based on type
+  };
+
+  // Helper function to get the URL for a suggestion
+  const getSuggestionUrl = (suggestion: { type: 'city' | 'attraction'; slug: string }) => {
     if (suggestion.type === 'city') {
-      router.push(`/cities/${suggestion.slug}`);
+      return `/${suggestion.slug}`;
     } else {
-      router.push(`/attractions/${suggestion.slug}`);
+      // For attractions, we need the city slug. For now, we'll use the old structure
+      // TODO: Update this when we have city slug in attraction data
+      return `/attractions/${suggestion.slug}`;
     }
   };
 
@@ -155,10 +160,10 @@ export function SearchInput({
             <ul className="max-h-80 overflow-y-auto" role="listbox">
               {displaySuggestions.map((suggestion, index) => (
                 <li key={`${suggestion.type}-${suggestion.slug}-${index}`}>
-                  <button
-                    type="button"
-                    className="w-full px-5 py-3 text-left text-sm sm:text-base text-gray-700 hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                    onClick={() => handleSuggestionClick(suggestion)}
+                  <Link
+                    href={getSuggestionUrl(suggestion)}
+                    className="block w-full px-5 py-3 text-left text-sm sm:text-base text-gray-700 hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                    onClick={handleSuggestionClick}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-medium text-gray-400 uppercase min-w-[60px]">
@@ -166,7 +171,7 @@ export function SearchInput({
                       </span>
                       <span className="font-medium">{suggestion.name}</span>
                     </div>
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
 import { HeroSection } from '@/components/sections/HeroSection';
@@ -207,13 +208,12 @@ export function HomePageClient({
             <h2 className="text-2xl font-display font-semibold md:text-3xl text-gray-900">{config.text.cities.heading}</h2>
           </div>
           {featuredCities.length > 0 && (
-            <button
-              type="button"
-              onClick={() => router.push('/cities')}
+            <Link
+              href="/cities"
               className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors underline"
             >
               {config.text.cities.seeAll}
-            </button>
+            </Link>
           )}
         </div>
         {featuredCities.length > 0 ? (
@@ -221,18 +221,13 @@ export function HomePageClient({
             {featuredCities.map((city, index) => {
               const citySlug = city.slug || city.name.toLowerCase().replace(/\s+/g, '-');
               return (
-                <button
+                <Link
                   key={city.slug || `city-${index}`}
-                  type="button"
-                  onClick={() => {
-                    if (citySlug) {
-                      router.push(`/cities/${citySlug}`);
-                    }
-                  }}
+                  href={`/${citySlug}`}
                   className="rounded-full border border-gray-200 bg-white px-5 py-2.5 md:px-6 md:py-3 text-base md:text-lg font-medium text-gray-900 shadow-sm hover:border-primary-200 hover:bg-primary-50/80 transition-all duration-200"
                 >
                   {city.name}
-                </button>
+                </Link>
               );
             })}
           </div>

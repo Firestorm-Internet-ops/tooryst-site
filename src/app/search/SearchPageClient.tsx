@@ -151,7 +151,7 @@ export function SearchPageClient({
         >
           <button
             type="button"
-            onClick={() => router.push(`/cities/${city.slug}`)}
+            onClick={() => router.push(`/${city.slug}`)}
             className="w-full text-left flex flex-col gap-2"
           >
             <div className="flex items-center justify-between">
@@ -191,7 +191,7 @@ export function SearchPageClient({
                 >
                   <button
                     type="button"
-                    onClick={() => router.push(`/cities/${city.slug}`)}
+                    onClick={() => router.push(`/${city.slug}`)}
                     className="w-full text-left flex flex-col gap-3 p-5"
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -246,7 +246,6 @@ export function SearchPageClient({
               </div>
             <AttractionsGrid 
               attractions={attractions} 
-              onAttractionClick={(slug) => router.push(`/attractions/${slug}`)}
             />
               </div>
         )}
@@ -291,7 +290,6 @@ export function SearchPageClient({
       return (
         <AttractionsGrid 
           attractions={paginatedItems as AttractionSummary[]} 
-          onAttractionClick={(slug) => router.push(`/attractions/${slug}`)}
         />
       );
     }
