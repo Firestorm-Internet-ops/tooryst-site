@@ -6,10 +6,10 @@ import { Mail, Phone, MapPin, Clock } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: `Contact Us - ${config.appName}`,
-  description: 'Get in touch with Crowd Tracker for support, partnerships, or any questions.',
+  description: 'Get in touch with Tooryst for support, partnerships, or any questions.',
   openGraph: {
     title: `Contact Us - ${config.appName}`,
-    description: 'Get in touch with Crowd Tracker for support, partnerships, or any questions.',
+    description: 'Get in touch with Tooryst for support, partnerships, or any questions.',
   },
 }
 

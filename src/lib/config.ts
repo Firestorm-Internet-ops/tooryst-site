@@ -7,22 +7,22 @@ export const config = {
   // API & Core
   apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1',
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-  appName: process.env.NEXT_PUBLIC_APP_NAME || 'Toorysts',
+  appName: process.env.NEXT_PUBLIC_APP_NAME || 'Tooryst',
   apiTimeout: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000'),
   revalidateSeconds: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_SECONDS || '300'),
 
   // Company Info
-  companyName: process.env.NEXT_PUBLIC_COMPANY_NAME || 'Toorysts Inc',
+  companyName: process.env.NEXT_PUBLIC_COMPANY_NAME || 'Tooryst Inc',
   companyDescription: process.env.NEXT_PUBLIC_COMPANY_DESCRIPTION || 'Discover authentic travel experiences through community insights',
   companyTagline: process.env.NEXT_PUBLIC_COMPANY_TAGLINE || 'Your Guide to Unforgettable Destinations',
   companyFounded: process.env.NEXT_PUBLIC_COMPANY_FOUNDED || '2024',
-  companyWebsite: process.env.NEXT_PUBLIC_COMPANY_WEBSITE || 'https://toorysts.com',
+  companyWebsite: process.env.NEXT_PUBLIC_COMPANY_WEBSITE || 'https://tooryst.com',
 
   // Contact Information
-  contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'hello@toorysts.com',
-  supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@toorysts.com',
-  phoneNumber: process.env.NEXT_PUBLIC_PHONE_NUMBER || '+1 (555) 123-4567',
-  officeAddress: process.env.NEXT_PUBLIC_OFFICE_ADDRESS || '123 Travel Boulevard, San Francisco, CA 94105',
+  contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'travel@thebettervacation.com',
+  supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'travel@thebettervacation.com',
+  phoneNumber: process.env.NEXT_PUBLIC_PHONE_NUMBER || '+91 73588-08488',
+  officeAddress: process.env.NEXT_PUBLIC_OFFICE_ADDRESS || 'Firestorm Internet, 203, 30C, Bollineni Hillside, Perumbakkam Main Road, Nookampalayam, Chennai, India – 600126',
 
   // Social Media
   social: {
@@ -74,7 +74,7 @@ export const config = {
 
   // Meta & SEO
   defaultMetaDescription: process.env.NEXT_PUBLIC_DEFAULT_META_DESCRIPTION || 'Discover attractions worldwide',
-  siteName: process.env.NEXT_PUBLIC_SITE_NAME || 'Toorysts',
+  siteName: process.env.NEXT_PUBLIC_SITE_NAME || 'Tooryst',
   brandColor: process.env.NEXT_PUBLIC_BRAND_COLOR || '#3B82F6',
 
   // Feature Flags
@@ -145,7 +145,7 @@ export const config = {
   text: {
     // Search/Explore page
     search: {
-      title: process.env.NEXT_PUBLIC_SEARCH_TITLE || 'Search Storyboard',
+      title: process.env.NEXT_PUBLIC_SEARCH_TITLE || 'Search Tooryst',
       placeholder: process.env.NEXT_PUBLIC_SEARCH_PLACEHOLDER || 'Search cities or attractions',
       button: process.env.NEXT_PUBLIC_SEARCH_BUTTON || 'Search',
       loading: process.env.NEXT_PUBLIC_SEARCH_LOADING || 'Searching…',
@@ -177,7 +177,7 @@ export const config = {
     hero: {
       eyebrow: process.env.NEXT_PUBLIC_HERO_EYEBROW || 'Travel Intelligence',
       heading: process.env.NEXT_PUBLIC_HERO_HEADING || 'Discover the Best Time to Travel',
-      subheading: process.env.NEXT_PUBLIC_HERO_SUBHEADING || 'Live crowd signals, hyperlocal weather, and visitor sentiment—all in one storyboard.',
+      subheading: process.env.NEXT_PUBLIC_HERO_SUBHEADING || 'Live crowd signals, hyperlocal weather, and visitor sentiment—all in one travel guide.',
       searchPlaceholder: process.env.NEXT_PUBLIC_HERO_SEARCH_PLACEHOLDER || 'Search cities, attractions, or stories',
       cta: process.env.NEXT_PUBLIC_HERO_CTA || 'Explore',
       pillars: [
@@ -217,7 +217,7 @@ export const config = {
 
     emptyState: {
       heading: process.env.NEXT_PUBLIC_EMPTY_STATE_HEADING || 'No Data Available',
-      message: process.env.NEXT_PUBLIC_EMPTY_STATE_MESSAGE || 'The database is empty. Import attractions data to get started with your travel storyboard.',
+      message: process.env.NEXT_PUBLIC_EMPTY_STATE_MESSAGE || 'The database is empty. Import attractions data to get started with your travel guide.',
       setupTitle: process.env.NEXT_PUBLIC_EMPTY_STATE_SETUP_TITLE || 'Setup Instructions',
     },
 

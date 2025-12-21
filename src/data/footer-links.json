@@ -24,32 +24,32 @@
   "social": [
     {
       "icon": "Twitter",
-      "url": "https://twitter.com",
+      "url": "https://twitter.com/bettervacation_",
       "label": "Twitter"
     },
     {
       "icon": "Linkedin",
-      "url": "https://linkedin.com",
+      "url": "https://www.linkedin.com/company/thebettervacation/",
       "label": "LinkedIn"
     },
     {
-      "icon": "Github",
-      "url": "https://github.com",
-      "label": "GitHub"
+      "icon": "Pinterest",
+      "url": "https://www.pinterest.com/thebettervacation/",
+      "label": "Pinterest"
     },
     {
       "icon": "Facebook",
-      "url": "https://facebook.com",
+      "url": "https://www.facebook.com/thebettervacation",
       "label": "Facebook"
     },
     {
       "icon": "Instagram",
-      "url": "https://instagram.com",
+      "url": "https://www.instagram.com/thebettervacation/",
       "label": "Instagram"
     },
     {
       "icon": "Youtube",
-      "url": "https://youtube.com",
+      "url": "https://www.youtube.com/channel/UCmSy2vAcpu2ULN0tHV6aA1A",
       "label": "YouTube"
     }
   ]
