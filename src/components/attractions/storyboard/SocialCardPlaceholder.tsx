@@ -4,7 +4,7 @@ import { Play } from 'lucide-react';
 
 export function SocialCardPlaceholder() {
   return (
-    <article className="rounded-3xl bg-gradient-to-br from-red-50 via-red-50 to-red-100 border border-red-200 overflow-hidden w-full h-full flex flex-col items-center justify-center min-h-96 relative">
+    <article className="rounded-3xl bg-gradient-to-br from-red-50 via-red-50 to-red-100 border border-red-200 overflow-hidden w-full h-full flex flex-col items-center justify-center relative">
       {/* YouTube-style background pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-4 right-4 w-20 h-20 bg-red-600 rounded-full" />

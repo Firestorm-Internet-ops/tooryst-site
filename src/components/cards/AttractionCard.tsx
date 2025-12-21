@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { X } from 'lucide-react';
 import { RatingStars } from '@/components/ui/RatingStars';
 import { PlaceholderCard } from '@/components/cards/PlaceholderCard';
@@ -110,9 +111,8 @@ export function AttractionCard({
 
   // Grid variant
   return (
-    <button
-      type="button"
-      onClick={() => onView?.(attraction.slug)}
+    <Link
+      href={`/attractions/${attraction.slug}`}
       className="bg-white rounded-2xl shadow hover:shadow-lg transition-shadow text-left w-full h-full overflow-hidden group m-0 p-0 flex flex-col"
     >
       <div className={`relative h-48 w-full overflow-hidden rounded-t-2xl flex-shrink-0 ${isPlaceholder ? 'bg-gradient-to-br from-gray-100 to-gray-200' : ''}`}>
@@ -169,6 +169,6 @@ export function AttractionCard({
           )
         )}
       </div>
-    </button>
+    </Link>
   );
 }
