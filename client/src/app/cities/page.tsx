@@ -94,7 +94,7 @@ export default async function CitiesPage() {
               {cities.map((city) => (
                 <Link
                   key={city.slug}
-                  href={`/cities/${city.slug}`}
+                  href={`/${city.slug}`}
                   className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:border-primary-200 hover:shadow-md transition-all duration-300"
                 >
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br from-primary-50 to-blue-50 transition-opacity duration-300" />

@@ -72,11 +72,6 @@ export function AttractionPageClient({ pageData }: AttractionPageClientProps) {
 
   const { activeSection, scrollToSection } = useScrollSpy(sectionIds);
 
-  // Handle scroll to section when card is clicked
-  const handleCardClick = (sectionType: string) => {
-    scrollToSection(sectionType);
-  };
-
   return (
     <main className="bg-white text-gray-900 min-h-screen">
       {/* Load GetYourGuide script */}
@@ -85,7 +80,7 @@ export function AttractionPageClient({ pageData }: AttractionPageClientProps) {
       {/* Storyboard Cards Grid */}
       <section id="storyboard-grid" aria-labelledby="storyboard-heading">
         <h2 id="storyboard-heading" className="sr-only">Attraction Overview</h2>
-        <StoryboardCardsGrid data={pageData} onCardClick={handleCardClick} />
+        <StoryboardCardsGrid data={pageData} />
       </section>
 
       {/* GetYourGuide Widget - in the gap between cards and navbar */}

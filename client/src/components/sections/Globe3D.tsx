@@ -212,7 +212,7 @@ export function Globe3D({ cities }: Globe3DProps) {
                 </p>
               )}
               <a
-                href={city.slug ? `/cities/${city.slug}` : '#'}
+                href={city.slug ? `/${city.slug}` : '#'}
                 className="mt-1 inline-flex items-center justify-center rounded-lg bg-primary-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-600 transition-colors"
               >
                 {config.text.globe.viewCity}
