@@ -47,18 +47,22 @@ export function NavigationLink({
     [href, onClick, showLoadingSpinner, navigateWithLoading, replace]
   );
 
+  // Only show loading spinner for simple text links, not complex card layouts
+  const shouldShowSpinner = isLoading && showLoadingSpinner && typeof children === 'string';
+
   return (
     <Link
       href={href}
       className={cn(
-        'inline-flex items-center gap-2 transition-all duration-200',
+        'transition-all duration-200',
+        shouldShowSpinner && 'inline-flex items-center gap-2',
         isLoading && showLoadingSpinner && 'opacity-75 cursor-wait',
         className
       )}
       onClick={handleClick}
       {...props}
     >
-      {isLoading && showLoadingSpinner && <LoadingSpinner size="small" />}
+      {shouldShowSpinner && <LoadingSpinner size="small" />}
       {isLoading && loadingText ? loadingText : children}
     </Link>
   );
