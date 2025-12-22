@@ -127,33 +127,76 @@ main() {
     fi
     echo ""
 
-    # Step 5: Restart services
-    log_info "Step 5: Restarting services..."
+    # Step 4: Setup environment files
+    log_info "Step 4: Setting up environment files..."
     
-    if pm2 restart all; then
-        log_success "Services restarted successfully"
-    else
-        log_error "Failed to restart services"
-        exit 1
+    # Backend environment
+    if [ ! -f "$BACKEND_DIR/.env" ]; then
+        log_warning "Backend .env not found, copying from example"
+        cp "$BACKEND_DIR/.env.example" "$BACKEND_DIR/.env"
+        log_warning "Please edit $BACKEND_DIR/.env with your staging values"
     fi
+    
+    # Frontend environment
+    if [ ! -f "$FRONTEND_DIR/.env.local" ]; then
+        log_warning "Frontend .env.local not found, copying from example"
+        cp "$FRONTEND_DIR/.env.example" "$FRONTEND_DIR/.env.local"
+        log_warning "Please edit $FRONTEND_DIR/.env.local with your staging values"
+    fi
+    
+    log_success "Environment files checked"
     echo ""
 
-    # Step 6: Verify deployment
-    log_info "Step 6: Verifying deployment..."
+    # Step 5: Stop existing services
+    log_info "Step 5: Stopping existing services..."
+    cd "$BACKEND_DIR"
+    ./stop_all.sh > /dev/null 2>&1 || true
+    cd "$PROJECT_DIR"
     
-    sleep 3
-    
-    # Check PM2 status
-    log_info "Checking service status..."
-    pm2 status
+    log_success "Existing services stopped"
     echo ""
+
+    # Step 6: Start services
+    log_info "Step 6: Starting services..."
+    cd "$BACKEND_DIR"
     
-    # Test backend health
+    # Start backend services
+    if ./start_all.sh > /dev/null 2>&1; then
+        log_success "Backend services started"
+    else
+        log_error "Failed to start backend services"
+        exit 1
+    fi
+    
+    # Start frontend
+    cd "$FRONTEND_DIR"
+    if npm run start > /dev/null 2>&1 &; then
+        log_success "Frontend started"
+    else
+        log_error "Failed to start frontend"
+        exit 1
+    fi
+    
+    cd "$PROJECT_DIR"
+    echo ""
+
+    # Step 7: Verify deployment
+    log_info "Step 7: Verifying deployment..."
+    
+    sleep 5
+    
+    # Check backend health
     log_info "Testing backend health..."
     if curl -s http://localhost:8000/health | grep -q "ok"; then
         log_success "Backend is responding"
     else
-        log_warning "Backend health check failed"
+        log_warning "Backend health check failed - checking if it's starting up..."
+        sleep 5
+        if curl -s http://localhost:8000/health | grep -q "ok"; then
+            log_success "Backend is now responding"
+        else
+            log_error "Backend health check failed"
+        fi
     fi
     
     # Test frontend
@@ -165,26 +208,27 @@ main() {
     fi
     echo ""
 
-    # Step 7: Summary
+    # Step 8: Summary
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${GREEN}║     ✅ Staging Deployment Complete!                       ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
     echo ""
     echo -e "${YELLOW}📊 Deployment Summary:${NC}"
     echo "  • Code: Updated from GitHub"
-    echo "  • Backend: Dependencies installed"
-    echo "  • Frontend: Built and ready"
-    echo "  • Services: Restarted via PM2"
+    echo "  • Backend: Dependencies installed and services started"
+    echo "  • Frontend: Built and started"
+    echo "  • Environment: Files checked and configured"
     echo ""
     echo -e "${YELLOW}🔗 Access Points:${NC}"
     echo "  • Frontend: https://staging.tourists.co"
     echo "  • Backend (internal): http://localhost:8000"
-    echo "  • Logs: pm2 logs"
+    echo "  • API Docs: http://localhost:8000/docs"
     echo ""
     echo -e "${YELLOW}📝 Next Steps:${NC}"
     echo "  1. Visit https://staging.tourists.co to verify"
-    echo "  2. Check logs: pm2 logs"
-    echo "  3. Monitor: pm2 monit"
+    echo "  2. Check backend logs: tail -f backend/logs/backend.log"
+    echo "  3. Check celery logs: tail -f backend/logs/celery_worker.log"
+    echo "  4. Monitor processes: cd backend && ./stop_all.sh && ./start_all.sh"
     echo ""
 }
 
