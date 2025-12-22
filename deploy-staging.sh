@@ -170,8 +170,11 @@ main() {
     
     # Start frontend
     cd "$FRONTEND_DIR"
-    if npm run start > /dev/null 2>&1 &; then
-        log_success "Frontend started"
+    npm run start > /dev/null 2>&1 &
+    FRONTEND_PID=$!
+    sleep 2
+    if kill -0 $FRONTEND_PID 2>/dev/null; then
+        log_success "Frontend started (PID: $FRONTEND_PID)"
     else
         log_error "Failed to start frontend"
         exit 1
