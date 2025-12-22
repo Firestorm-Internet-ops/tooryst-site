@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   // Performance optimizations
   reactCompiler: true,
   compress: true,
+  output: 'standalone', // Required for Docker deployment
   
   experimental: {
     optimizeCss: true, // Enable CSS optimization
