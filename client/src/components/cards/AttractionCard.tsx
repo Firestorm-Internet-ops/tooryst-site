@@ -1,7 +1,7 @@
 import Image from 'next/image';
-import Link from 'next/link';
 import { X } from 'lucide-react';
 import { RatingStars } from '@/components/ui/RatingStars';
+import { NavigationLink } from '@/components/ui/NavigationLink';
 import { PlaceholderCard } from '@/components/cards/PlaceholderCard';
 import { config } from '@/lib/config';
 import { cityNameToSlug } from '@/lib/slug-utils';
@@ -128,8 +128,9 @@ export function AttractionCard({
   const attractionUrl = `/${citySlug}/${attraction.slug}`;
   
   return (
-    <Link
+    <NavigationLink
       href={attractionUrl}
+      showLoadingSpinner={true}
       className="bg-white rounded-2xl shadow hover:shadow-lg transition-shadow text-left w-full h-full overflow-hidden group m-0 p-0 flex flex-col"
     >
       <div className={`relative h-48 w-full overflow-hidden rounded-t-2xl flex-shrink-0 ${isPlaceholder ? 'bg-gradient-to-br from-gray-100 to-gray-200' : ''}`}>
@@ -191,6 +192,6 @@ export function AttractionCard({
           )
         )}
       </div>
-    </Link>
+    </NavigationLink>
   );
 }

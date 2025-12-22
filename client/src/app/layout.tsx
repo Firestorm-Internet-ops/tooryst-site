@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { SkipToMain, SkipToSearch } from '@/components/ui/SkipLink';
+import { NavigationProgress } from '@/components/ui/NavigationProgress';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -39,6 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
       <body className="bg-gray-950 text-gray-50 antialiased">
+        <NavigationProgress />
         <SkipToMain />
         <SkipToSearch />
         <QueryProvider>
