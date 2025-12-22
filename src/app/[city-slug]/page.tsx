@@ -5,7 +5,6 @@ import { CityPageClient } from './CityPageClient';
 import { CityDetail } from '@/types/api';
 import { config } from '@/lib/config';
 import { seoManager } from '@/lib/seo-manager';
-import { CityStructuredData } from '@/components/seo/StructuredData';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -17,7 +16,6 @@ interface CityPageProps {
 }
 
 const API_BASE_URL = config.apiBaseUrl;
-const APP_BASE_URL = config.appUrl;
 
 async function fetchCity(slug: string): Promise<CityDetail | null> {
   try {
@@ -42,7 +40,7 @@ export async function generateMetadata(
   { params }: CityPageProps
 ): Promise<Metadata> {
   // Handle Next.js 15+ where params might be a promise
-  const resolvedParams = params && typeof params === 'object' && 'then' in params ? await params : params;
+  const resolvedParams = await Promise.resolve(params);
   const slug = resolvedParams?.['city-slug']?.toLowerCase();
   if (!slug) {
     return {
@@ -73,7 +71,7 @@ export async function generateMetadata(
 
 export default async function CityPage({ params, searchParams }: CityPageProps) {
   // Handle Next.js 15+ where params might be a promise
-  const resolvedParams = params && typeof params === 'object' && 'then' in params ? await params : params;
+  const resolvedParams = await Promise.resolve(params);
   const slug = resolvedParams?.['city-slug']?.toLowerCase();
   
   if (!slug) {
@@ -86,9 +84,7 @@ export default async function CityPage({ params, searchParams }: CityPageProps) 
     notFound();
   }
   
-  const resolvedSearchParams = searchParams && typeof searchParams === 'object' && 'then' in searchParams 
-    ? await searchParams 
-    : searchParams;
+  const resolvedSearchParams = await Promise.resolve(searchParams);
   const pageParam = resolvedSearchParams?.page;
   const initialPage =
     typeof pageParam === 'string' ? Math.max(1, parseInt(pageParam, 10) || 1) : 1;
