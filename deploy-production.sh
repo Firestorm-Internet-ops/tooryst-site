@@ -79,6 +79,11 @@ main() {
         exit 1
     fi
     
+    if ! command -v pnpm &> /dev/null; then
+        log_error "pnpm is not installed"
+        exit 1
+    fi
+    
     if ! command -v pm2 &> /dev/null; then
         log_error "PM2 is not installed"
         exit 1
@@ -148,8 +153,8 @@ main() {
     cd "$FRONTEND_DIR"
     
     # Install dependencies
-    log_info "Installing npm dependencies..."
-    if npm install > /dev/null 2>&1; then
+    log_info "Installing pnpm dependencies..."
+    if pnpm install > /dev/null 2>&1; then
         log_success "Frontend dependencies installed"
     else
         log_error "Failed to install frontend dependencies"
@@ -158,7 +163,7 @@ main() {
     
     # Build frontend
     log_info "Building frontend..."
-    if npm run build > /dev/null 2>&1; then
+    if TURBOPACK=false NODE_OPTIONS='--max-old-space-size=4096' pnpm build > /dev/null 2>&1; then
         log_success "Frontend built successfully"
     else
         log_error "Failed to build frontend"
@@ -213,8 +218,11 @@ main() {
     
     # Start frontend
     cd "$FRONTEND_DIR"
-    if npm run start > /dev/null 2>&1 &; then
-        log_success "Frontend started"
+    pnpm start > /dev/null 2>&1 &
+    FRONTEND_PID=$!
+    sleep 2
+    if kill -0 $FRONTEND_PID 2>/dev/null; then
+        log_success "Frontend started (PID: $FRONTEND_PID)"
     else
         log_error "Failed to start frontend"
         exit 1

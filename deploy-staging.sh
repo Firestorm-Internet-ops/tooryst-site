@@ -60,6 +60,11 @@ main() {
         exit 1
     fi
     
+    if ! command -v pnpm &> /dev/null; then
+        log_error "pnpm is not installed"
+        exit 1
+    fi
+    
     if ! command -v pm2 &> /dev/null; then
         log_error "PM2 is not installed"
         exit 1
@@ -109,8 +114,8 @@ main() {
     cd "$FRONTEND_DIR"
     
     # Install dependencies
-    log_info "Installing npm dependencies..."
-    if npm install > /dev/null 2>&1; then
+    log_info "Installing pnpm dependencies..."
+    if pnpm install > /dev/null 2>&1; then
         log_success "Frontend dependencies installed"
     else
         log_error "Failed to install frontend dependencies"
@@ -119,7 +124,7 @@ main() {
     
     # Build frontend
     log_info "Building frontend..."
-    if npm run build > /dev/null 2>&1; then
+    if TURBOPACK=false NODE_OPTIONS='--max-old-space-size=4096' pnpm build > /dev/null 2>&1; then
         log_success "Frontend built successfully"
     else
         log_error "Failed to build frontend"
@@ -139,8 +144,14 @@ main() {
     
     # Frontend environment
     if [ ! -f "$FRONTEND_DIR/.env.local" ]; then
-        log_warning "Frontend .env.local not found, copying from example"
-        cp "$FRONTEND_DIR/.env.example" "$FRONTEND_DIR/.env.local"
+        log_warning "Frontend .env.local not found"
+        if [ -f "$FRONTEND_DIR/.env.example" ]; then
+            log_warning "Copying from .env.example"
+            cp "$FRONTEND_DIR/.env.example" "$FRONTEND_DIR/.env.local"
+        else
+            log_warning "Creating basic .env.local - please configure manually"
+            echo "# Frontend environment variables" > "$FRONTEND_DIR/.env.local"
+        fi
         log_warning "Please edit $FRONTEND_DIR/.env.local with your staging values"
     fi
     
@@ -170,7 +181,7 @@ main() {
     
     # Start frontend
     cd "$FRONTEND_DIR"
-    npm run start > /dev/null 2>&1 &
+    pnpm start > /dev/null 2>&1 &
     FRONTEND_PID=$!
     sleep 2
     if kill -0 $FRONTEND_PID 2>/dev/null; then
