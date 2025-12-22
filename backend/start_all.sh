@@ -4,7 +4,7 @@
 # This script starts Redis, Backend, Celery Worker, and Celery Beat in the background
 
 echo "=========================================="
-echo "Starting All Storyboard Backend Services"
+echo "Starting All Tooryst Backend Services"
 echo "=========================================="
 
 # Check if Redis is already running

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################################################################
-# Storyboard Production Deployment Script
+# Tooryst Production Deployment Script
 # Deploys code from GitHub to production environment with backup
 # Usage: ./deploy-production.sh
 ###############################################################################
@@ -16,13 +16,13 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-PROJECT_DIR="/var/www/storyboard"
+PROJECT_DIR="/var/www/tooryst"
 BACKEND_DIR="$PROJECT_DIR/backend"
 FRONTEND_DIR="$PROJECT_DIR/client"
 LOG_DIR="$PROJECT_DIR/logs"
 BACKUP_DIR="/backups"
-DB_USER="storyboard_user"
-DB_NAME="storyboard"
+DB_USER="tooryst_user"
+DB_NAME="tooryst"
 
 # Functions
 log_info() {
@@ -57,7 +57,7 @@ confirm() {
 main() {
     echo ""
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║     🚀 Storyboard Production Deployment Script             ║${NC}"
+    echo -e "${BLUE}║     🚀 Tooryst Production Deployment Script               ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 

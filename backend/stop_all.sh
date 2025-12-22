@@ -3,7 +3,7 @@
 # Stop All Services
 
 echo "=========================================="
-echo "Stopping All Storyboard Backend Services"
+echo "Stopping All Tooryst Backend Services"
 echo "=========================================="
 
 # Create .pids directory if it doesn't exist

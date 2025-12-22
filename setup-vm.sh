@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################################################################
-# Storyboard VM Setup Script
+# Tooryst VM Setup Script
 # Installs all dependencies and configures the VM for deployment
 # Run this on a fresh Ubuntu 22.04 VM
 # Usage: ./setup-vm.sh
@@ -17,7 +17,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-PROJECT_DIR="/var/www/storyboard"
+PROJECT_DIR="/var/www/tooryst"
 BACKUP_DIR="/backups"
 
 # Functions
@@ -41,7 +41,7 @@ log_error() {
 main() {
     echo ""
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║     🖥️  Storyboard VM Setup Script                        ║${NC}"
+    echo -e "${BLUE}║     🖥️  Tooryst VM Setup Script                           ║${NC}"
     echo -e "${BLUE}║     Ubuntu 22.04 LTS                                      ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
     echo ""
@@ -157,10 +157,10 @@ main() {
     echo ""
     echo "1. Clone the repository:"
     echo "   cd $PROJECT_DIR"
-    echo "   git clone https://github.com/your-username/storyboard.git"
+    echo "   git clone https://github.com/your-username/tooryst.git"
     echo ""
     echo "2. Configure environment files:"
-    echo "   cd $PROJECT_DIR/storyboard/backend"
+    echo "   cd $PROJECT_DIR/tooryst/backend"
     echo "   cp .env.example .env"
     echo "   nano .env  # Edit with your values"
     echo "   # Note: Backend runs on port 8000"
@@ -172,14 +172,14 @@ main() {
     echo ""
     echo "3. Setup database:"
     echo "   sudo mysql -u root"
-    echo "   CREATE DATABASE storyboard;"
-    echo "   CREATE USER 'storyboard_user'@'localhost' IDENTIFIED BY 'password';"
-    echo "   GRANT ALL PRIVILEGES ON storyboard.* TO 'storyboard_user'@'localhost';"
+    echo "   CREATE DATABASE tooryst;"
+    echo "   CREATE USER 'tooryst_user'@'localhost' IDENTIFIED BY 'password';"
+    echo "   GRANT ALL PRIVILEGES ON tooryst.* TO 'tooryst_user'@'localhost';"
     echo "   FLUSH PRIVILEGES;"
     echo "   EXIT;"
     echo ""
     echo "4. Setup backend:"
-    echo "   cd $PROJECT_DIR/storyboard/backend"
+    echo "   cd $PROJECT_DIR/tooryst/backend"
     echo "   python3 -m venv venv"
     echo "   source venv/bin/activate"
     echo "   pip install -r requirements.txt"
@@ -200,12 +200,12 @@ main() {
     echo "   sudo certbot certonly --nginx -d staging.tourists.co"
     echo ""
     echo "8. Setup PM2 ecosystem:"
-    echo "   cd $PROJECT_DIR/storyboard"
+    echo "   cd $PROJECT_DIR/tooryst"
     echo "   pm2 start ecosystem.config.js"
     echo "   pm2 save"
     echo ""
     echo "   OR use custom backend scripts:"
-    echo "   cd $PROJECT_DIR/storyboard/backend"
+    echo "   cd $PROJECT_DIR/tooryst/backend"
     echo "   ./start_all.sh"
     echo ""
     echo -e "${YELLOW}📊 System Information:${NC}"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################################################################
-# Storyboard Staging Deployment Script
+# Tooryst Staging Deployment Script
 # Deploys code from GitHub to staging environment
 # Usage: ./deploy-staging.sh
 ###############################################################################
@@ -16,7 +16,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-PROJECT_DIR="/var/www/storyboard"
+PROJECT_DIR="/var/www/tooryst"
 BACKEND_DIR="$PROJECT_DIR/backend"
 FRONTEND_DIR="$PROJECT_DIR/client"
 LOG_DIR="$PROJECT_DIR/logs"
@@ -43,7 +43,7 @@ log_error() {
 main() {
     echo ""
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║     🚀 Storyboard Staging Deployment Script               ║${NC}"
+    echo -e "${BLUE}║     🚀 Tooryst Staging Deployment Script                  ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 

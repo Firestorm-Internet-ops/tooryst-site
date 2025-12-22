@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'storyboard-backend',
+      name: 'tooryst-backend',
       cwd: './backend',
       script: 'uvicorn',
       args: 'app.main:app --host 0.0.0.0 --port 8000',
@@ -18,7 +18,7 @@ module.exports = {
       log_file: './logs/backend.log'
     },
     {
-      name: 'storyboard-frontend',
+      name: 'tooryst-frontend',
       cwd: './client',
       script: 'npm',
       args: 'start',

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################################################################
-# Storyboard Deployment Status Check Script
+# Tooryst Deployment Status Check Script
 # Checks if all services are running correctly
 # Usage: ./check-deployment.sh
 ###############################################################################
@@ -51,7 +51,7 @@ check_service() {
 main() {
     echo ""
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║     🔍 Storyboard Deployment Status Check                 ║${NC}"
+    echo -e "${BLUE}║     🔍 Tooryst Deployment Status Check                    ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
     echo ""
     
